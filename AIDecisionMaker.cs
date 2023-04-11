@@ -93,18 +93,25 @@ namespace AI_BehaviorTree_AIImplementation
 
     }
 
+    public enum State
+    {
+        NOT_EXECUTED,
+        SUCCESS,
+        FAILURE,
+        RUNNING
+    }
 
     public class BehaviorTree
     {
 
     }
 
-    public class Noeud
+    public class Noeud 
     {
-
+        State state;
     }
 
-    public class Action
+    public class Action : Noeud
     {
 
     }
