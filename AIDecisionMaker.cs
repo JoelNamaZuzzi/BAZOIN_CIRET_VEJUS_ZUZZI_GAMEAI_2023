@@ -26,6 +26,7 @@ namespace AI_BehaviorTree_AIImplementation
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
+            behavior.ID = AIId;
             //initialize your actions/parameters and such here
         }
 
@@ -35,6 +36,9 @@ namespace AI_BehaviorTree_AIImplementation
         private float BestDistanceToFire = 10.0f;
         public List<AIAction> ComputeAIDecision()
         {
+            List<PlayerInformations> playerInfos = AIGameWorldUtils.GetPlayerInfosList();
+            PlayerInformations myPlayerInfo = GetPlayerInfos(AIId, playerInfos);
+            List<Action> myAction =  behavior.GetActions(myPlayerInfo);
             /*List<AIAction> actionList = new List<AIAction>();
 
             List<PlayerInformations> playerInfos = AIGameWorldUtils.GetPlayerInfosList();
@@ -105,12 +109,13 @@ namespace AI_BehaviorTree_AIImplementation
 
     public class BehaviorTree
     {
+        public int ID = -1;
         public Selector mySelector;
         List<int> BlackBoard = new List<int>();
-        /*public List<Action> GetActions()
+        public List<Action> GetActions(PlayerInformations myPlayerInfo)
         {
-
-        }*/
+            //Fait ton call en envoyant myPlayerInfo
+        }
     }
 
     public class Noeud 
@@ -197,4 +202,5 @@ namespace AI_BehaviorTree_AIImplementation
             return state;
         }
     }
+    //public class ActionMove : Action
 }
