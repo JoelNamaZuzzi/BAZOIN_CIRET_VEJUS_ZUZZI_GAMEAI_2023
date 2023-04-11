@@ -87,5 +87,26 @@ namespace AI_BehaviorTree_AIImplementation
             Assert.IsTrue(false, "GetPlayerInfos : PlayerId not Found");
             return null;
         }
+
+
+
+
     }
+
+
+    public class BehaviorTree
+    {
+
+    }
+
+    public class Noeud
+    {
+
+    }
+
+    public class Action
+    {
+
+    }
+
 }
