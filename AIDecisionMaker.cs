@@ -134,7 +134,7 @@ namespace AI_BehaviorTree_AIImplementation
 
             foreach (Sequencer sequencer in listSequencer)
             {
-                sequencer.LaunchSequencer()
+                sequencer.LaunchSequencer();
             }
 
             return returnActions;
@@ -161,7 +161,10 @@ namespace AI_BehaviorTree_AIImplementation
 
             foreach (Action action in listAction)
             {
-                
+                if (action.GetState() == State.FAILURE)
+                {
+
+                }
             }
 
             return returnActions;
