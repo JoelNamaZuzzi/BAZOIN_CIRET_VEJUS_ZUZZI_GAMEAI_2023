@@ -113,7 +113,19 @@ namespace AI_BehaviorTree_AIImplementation
     {
         State state;
     }
-
+    public class Selector : Noeud
+    {
+        Action defaultAction;
+        List<Sequencer> listSequencer;
+    }
+    public class Sequencer : Noeud
+    {
+        List<Action> listAction;
+        public void addAction(Action a)
+        {
+            listAction.Add(a);
+        }
+    }
     public class Action : Noeud
     {
 
