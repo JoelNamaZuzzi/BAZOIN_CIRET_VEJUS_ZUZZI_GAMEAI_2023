@@ -38,7 +38,6 @@ namespace AI_BehaviorTree_AIImplementation
             /*List<AIAction> actionList = new List<AIAction>();
 
             List<PlayerInformations> playerInfos = AIGameWorldUtils.GetPlayerInfosList();
-
             PlayerInformations target = null;
             foreach (PlayerInformations playerInfo in playerInfos)
             {
@@ -116,7 +115,7 @@ namespace AI_BehaviorTree_AIImplementation
 
     public class Noeud 
     {
-        State state;
+        public State state;
     }
     public class Selector : Noeud
     {
@@ -133,7 +132,29 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class Action : Noeud
     {
-
+        public AIAction myAIAction;
+        public virtual State GetState(PlayerInformations myPlayerInfo)
+        {
+            return state;
+        }
+        public virtual AIAction GetAIAction()
+        {
+            return myAIAction;
+        }
     }
-
+    public class ActionDash : Action
+    {
+        public override State GetState(PlayerInformations myPlayerInfo)
+        {
+            if (myPlayerInfo.IsDashAvailable)
+            {
+                state = State.SUCCESS;
+            }
+            else
+            {
+                state = State.FAILURE;
+            }
+            return state;
+        }
+    }
 }
