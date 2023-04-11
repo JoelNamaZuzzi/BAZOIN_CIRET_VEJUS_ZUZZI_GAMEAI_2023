@@ -16,14 +16,18 @@ namespace AI_BehaviorTree_AIImplementation
         /// </summary>
         private int AIId = -1;
         public GameWorldUtils AIGameWorldUtils = new GameWorldUtils();
+        BehaviorTree behavior;
 
         // Ne pas utiliser cette fonction, elle n'est utile que pour le jeu qui vous Set votre Id, si vous voulez votre Id utilisez AIId
         public void SetAIId(int parAIId) { AIId = parAIId; }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
         public string GetName() { return "JojoLePasJojo"; }
-
-        public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { AIGameWorldUtils = parGameWorldUtils; }
+        //Same as Initialize
+        public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
+            AIGameWorldUtils = parGameWorldUtils;
+            //initialize your actions/parameters and such here
+        }
 
         //Fin du bloc de fonction nécessaire (Attention ComputeAIDecision en fait aussi partit)
 
@@ -72,7 +76,6 @@ namespace AI_BehaviorTree_AIImplementation
             actionLookAt.Position = target.Transform.Position;
             actionList.Add(actionLookAt);
             actionList.Add(new AIActionFire());*/
-            BehaviorTree behavior = new BehaviorTree();
 
             List<AIAction> actionList = new List<AIAction>();
 
@@ -91,9 +94,6 @@ namespace AI_BehaviorTree_AIImplementation
             return null;
         }
 
-
-
-
     }
 
     public enum State
@@ -106,7 +106,12 @@ namespace AI_BehaviorTree_AIImplementation
 
     public class BehaviorTree
     {
+        public Selector mySelector;
+        List<int> BlackBoard = new List<int>();
+        /*public List<Action> GetActions()
+        {
 
+        }*/
     }
 
     public class Noeud 
