@@ -31,7 +31,7 @@ namespace AI_BehaviorTree_AIImplementation
         private float BestDistanceToFire = 10.0f;
         public List<AIAction> ComputeAIDecision()
         {
-            List<AIAction> actionList = new List<AIAction>();
+            /*List<AIAction> actionList = new List<AIAction>();
 
             List<PlayerInformations> playerInfos = AIGameWorldUtils.GetPlayerInfosList();
 
@@ -71,7 +71,10 @@ namespace AI_BehaviorTree_AIImplementation
             AIActionLookAtPosition actionLookAt = new AIActionLookAtPosition();
             actionLookAt.Position = target.Transform.Position;
             actionList.Add(actionLookAt);
-            actionList.Add(new AIActionFire());
+            actionList.Add(new AIActionFire());*/
+            BehaviorTree behavior = new BehaviorTree();
+
+            List<AIAction> actionList = new List<AIAction>();
 
             return actionList;
         }
