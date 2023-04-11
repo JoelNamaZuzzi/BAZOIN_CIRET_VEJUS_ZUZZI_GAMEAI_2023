@@ -22,7 +22,7 @@ namespace AI_BehaviorTree_AIImplementation
         public void SetAIId(int parAIId) { AIId = parAIId; }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
-        public string GetName() { return "JojoLePasJojo"; }
+        public string GetName() { return "CIRNO the STRONGEST"; }
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
@@ -116,12 +116,37 @@ namespace AI_BehaviorTree_AIImplementation
 
     public class Noeud 
     {
-        State state;
+        public State state;
     }
     public class Selector : Noeud
     {
         Action defaultAction;
         List<Sequencer> listSequencer;
+
+        Selector()
+        {
+            listSequencer = new List<Sequencer>();
+            state = State.NOT_EXECUTED;
+        }
+
+        public List<Action> LaunchSelector()
+        {
+            List<Action> returnActions = new List<Action>();
+
+            foreach (Sequencer sequencer in listSequencer)
+            {
+                sequencer.LaunchSequencer()
+            }
+
+            return returnActions;
+        } 
+
+
+       public void AddSequencer(Sequencer s)
+        {
+            listSequencer.Add(s);
+        }
+
     }
     public class Sequencer : Noeud
     {
@@ -129,6 +154,18 @@ namespace AI_BehaviorTree_AIImplementation
         public void addAction(Action a)
         {
             listAction.Add(a);
+        }
+
+        public List<Action> LaunchSequencer()
+        {
+            List<Action> returnActions = new List<Action>();
+
+            foreach (Action action in listAction)
+            {
+                
+            }
+
+            return returnActions;
         }
     }
     public class Action : Noeud
