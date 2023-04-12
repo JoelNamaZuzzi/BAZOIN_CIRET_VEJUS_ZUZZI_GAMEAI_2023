@@ -26,7 +26,7 @@ namespace AI_BehaviorTree_AIImplementation
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
-            behavior.ID = AIId;
+            behavior.IDPlayer = AIId;
             //initialize your actions/parameters and such here
         }
 
@@ -96,9 +96,7 @@ namespace AI_BehaviorTree_AIImplementation
             Assert.IsTrue(false, "GetPlayerInfos : PlayerId not Found");
             return null;
         }
-
     }
-
     public enum State
     {
         NOT_EXECUTED,
@@ -106,7 +104,6 @@ namespace AI_BehaviorTree_AIImplementation
         FAILURE,
         RUNNING
     }
-
     public class BehaviorTree
     {
         public int IDPlayer = -1;
@@ -137,7 +134,7 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class BlackBoard
     {
-        public PlayerInformations playerTarget = null;
+        public int playerTarget = -1;
     }
 
     public class Noeud 
@@ -230,7 +227,15 @@ namespace AI_BehaviorTree_AIImplementation
         {
             return state;
         }
+        public virtual State GetState(BlackBoard theBlackBoard)
+        {
+            return state;
+        }
         public virtual State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return state;
+        }
+        public virtual State GetState(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return state;
         }
@@ -269,7 +274,13 @@ namespace AI_BehaviorTree_AIImplementation
         //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
         public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            potentialTarget = theBlackBoard.playerTarget;
+            foreach (PlayerInformations playerInfo in playerInfos)
+            {
+                if (playerInfo.PlayerId == theBlackBoard.playerTarget)
+                {
+                    potentialTarget = playerInfo;
+                }
+            }
             if (potentialTarget == null || !potentialTarget.IsActive)
             {
                 foreach (PlayerInformations playerInfo in playerInfos)
@@ -298,7 +309,35 @@ namespace AI_BehaviorTree_AIImplementation
         public override AIAction GetAIAction(BlackBoard theBlackBoard)
         {
             myAIAction.Position = potentialTarget.Transform.Position;
-            theBlackBoard.playerTarget = potentialTarget;
+            theBlackBoard.playerTarget = potentialTarget.PlayerId;
+            return myAIAction;
+        }
+    }
+    public class ActionMoveToTarget : Action
+    {
+        public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
+        PlayerInformations target = null;
+        public override State GetState(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            foreach (PlayerInformations playerInfo in playerInfos)
+            {
+                if (playerInfo.PlayerId == theBlackBoard.playerTarget)
+                {
+                    target = playerInfo;
+                }
+            }
+            if (theBlackBoard.playerTarget != -1 && target.IsActive)
+            {
+                return State.SUCCESS;
+            }
+            else
+            {
+                return State.FAILURE;
+            }
+        }
+        public override AIAction GetAIAction(BlackBoard theBlackBoard)
+        {
+            myAIAction.Position = target.Transform.Position;
             return myAIAction;
         }
     }
