@@ -109,8 +109,9 @@ namespace AI_BehaviorTree_AIImplementation
 
     public class BehaviorTree
     {
-        public int ID = -1;
+        public int IDPlayer = -1;
         public Selector mySelector;
+        public List<Action> actionToRealize;
         List<int> BlackBoard = new List<int>();
         public List<Action> GetActions(PlayerInformations myPlayerInfo)
         {
@@ -121,6 +122,12 @@ namespace AI_BehaviorTree_AIImplementation
     public class Noeud 
     {
         public State state;
+        public List<Action> listActions;
+
+        public List<Action> GetActions()
+        {
+            return listActions;
+        }
     }
     public class Selector : Noeud
     {
@@ -133,19 +140,37 @@ namespace AI_BehaviorTree_AIImplementation
             state = State.NOT_EXECUTED;
         }
 
-        public List<Action> LaunchSelector()
+        /// <summary>
+        /// lance le selector, qui va check l'état des Sequence et recuperer les actions a effectuer 
+        /// </summary>
+        /// <param name="myPlayerInfo"></param>
+        public void LaunchSelector(PlayerInformations myPlayerInfo)
         {
             List<Action> returnActions = new List<Action>();
 
-            foreach (Sequencer sequencer in listSequencer)
+            for (int i = 0; i < listSequencer.Count; i++)
             {
-                sequencer.LaunchSequencer();
+                listSequencer[i].LaunchSequencer(myPlayerInfo);
+                if (listSequencer[i].state == State.SUCCESS)
+                {
+                    listActions = listSequencer[i].GetActions();
+                    this.state = State.SUCCESS;
+                    return;
+                }
+                if( i == listSequencer.Count)
+                {
+                    listActions = new List<Action>();
+                    listActions.Add(defaultAction);
+                    this.state = State.SUCCESS;
+                    return;
+                }
             }
-
-            return returnActions;
         } 
 
-
+        /// <summary>
+        /// Ajoute une sequence a la liste des Sequence 
+        /// </summary>
+        /// <param name="s"></param>
        public void AddSequencer(Sequencer s)
         {
             listSequencer.Add(s);
@@ -154,25 +179,25 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class Sequencer : Noeud
     {
-        List<Action> listAction;
         public void addAction(Action a)
         {
-            listAction.Add(a);
+            listActions.Add(a);
         }
 
-        public List<Action> LaunchSequencer()
+        public void LaunchSequencer(PlayerInformations myPlayerInfo)
         {
-            List<Action> returnActions = new List<Action>();
-
-            foreach (Action action in listAction)
+            for (int i = 0; i< listActions.Count; i++)
             {
-                if (action.GetState() == State.FAILURE)
+                if (listActions[i].GetState(myPlayerInfo) == State.FAILURE)
                 {
-
+                    listActions = new List<Action>();
+                    return;
+                }
+                if (i == listActions.Count)
+                {
+                    this.state = State.SUCCESS;
                 }
             }
-
-            return returnActions;
         }
     }
     public class Action : Noeud
