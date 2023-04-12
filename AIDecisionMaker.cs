@@ -26,7 +26,7 @@ namespace AI_BehaviorTree_AIImplementation
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
-            behavior.ID = AIId;
+            behavior.IDPlayer = AIId;
             //initialize your actions/parameters and such here
         }
 
