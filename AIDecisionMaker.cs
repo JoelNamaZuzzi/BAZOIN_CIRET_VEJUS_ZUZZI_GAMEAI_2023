@@ -135,7 +135,7 @@ namespace AI_BehaviorTree_AIImplementation
     public class BlackBoard
     {
         public int playerTarget = -1;
-        public int potebntialTargetID = -1;
+        public int potentialTargetID = -1;
     }
 
     public class Noeud 
@@ -252,6 +252,10 @@ namespace AI_BehaviorTree_AIImplementation
         {
             return myAIAction;
         }
+        public virtual AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
+        }
     }
     public class ActionDash : Action
     {
@@ -301,15 +305,22 @@ namespace AI_BehaviorTree_AIImplementation
                             Vector3.Distance(myPlayerInfo.Transform.Position, potentialTarget.Transform.Position))
                         {
                             potentialTarget = playerInfo;
-                            theBlackBoard.potebntialTargetID = playerInfo.PlayerId;
+                            theBlackBoard.potentialTargetID = playerInfo.PlayerId;
                         }
                     }
                 }
             }
             return State.SUCCESS;
         }
-        public override AIAction GetAIAction(BlackBoard theBlackBoard)
+        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
+            foreach (PlayerInformations playerInfo in playerInfos)
+            {
+                if (playerInfo.PlayerId == theBlackBoard.playerTarget)
+                {
+                    potentialTarget = playerInfo;
+                }
+            }
             myAIAction.Position = potentialTarget.Transform.Position;
             theBlackBoard.playerTarget = potentialTarget.PlayerId;
             return myAIAction;
