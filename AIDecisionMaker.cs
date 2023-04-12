@@ -112,8 +112,23 @@ namespace AI_BehaviorTree_AIImplementation
         public int IDPlayer = -1;
         public Selector mySelector;
 
-        public List<Action> actionToRealize;    
+        public List<Action> actionToRealize;
+        public List<AIAction> listAIActions;
         public BlackBoard myBlackBoard;
+
+        public void getSelectorActions()
+        {
+            actionToRealize = mySelector.GetActions();
+        }
+
+        public void getAIActions()
+        {
+            foreach (var action in actionToRealize)
+            {
+                listAIActions.Add(action.GetAIAction());
+            }
+        }
+
         /*public List<Action> GetActions(PlayerInformations myPlayerInfo, List<PlayerInformations> playerInfos, BlackBoard theBlackBoard)
 
         {
@@ -152,7 +167,6 @@ namespace AI_BehaviorTree_AIImplementation
         /// <param name="myPlayerInfo"></param>
         public void LaunchSelector(PlayerInformations myPlayerInfo)
         {
-            List<Action> returnActions = new List<Action>();
 
             for (int i = 0; i < listSequencer.Count; i++)
             {
