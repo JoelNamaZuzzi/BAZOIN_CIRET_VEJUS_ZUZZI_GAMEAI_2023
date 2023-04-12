@@ -316,7 +316,7 @@ namespace AI_BehaviorTree_AIImplementation
         {
             foreach (PlayerInformations playerInfo in playerInfos)
             {
-                if (playerInfo.PlayerId == theBlackBoard.playerTarget)
+                if (playerInfo.PlayerId == theBlackBoard.potentialTargetID)
                 {
                     potentialTarget = playerInfo;
                 }
