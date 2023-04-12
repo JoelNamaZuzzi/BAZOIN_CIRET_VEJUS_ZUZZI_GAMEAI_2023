@@ -111,11 +111,15 @@ namespace AI_BehaviorTree_AIImplementation
     {
         public int ID = -1;
         public Selector mySelector;
-        List<int> BlackBoard = new List<int>();
-        /*public List<Action> GetActions(PlayerInformations myPlayerInfo)
+        public BlackBoard myBlackBoard;
+        /*public List<Action> GetActions(PlayerInformations myPlayerInfo, List<PlayerInformations> playerInfos, BlackBoard theBlackBoard)
         {
-            //Fait ton call en envoyant myPlayerInfo
+            //Fait ton call en envoyant myPlayerInfo et the BlackBoard
         }*/
+    }
+    public class BlackBoard
+    {
+        public PlayerInformations playerTarget = null;
     }
 
     public class Noeud 
@@ -145,7 +149,6 @@ namespace AI_BehaviorTree_AIImplementation
             return returnActions;
         } 
 
-
        public void AddSequencer(Sequencer s)
         {
             listSequencer.Add(s);
@@ -166,15 +169,16 @@ namespace AI_BehaviorTree_AIImplementation
 
             foreach (Action action in listAction)
             {
-                if (action.GetState() == State.FAILURE)
+                /*if (action.GetState() == State.FAILURE)
                 {
 
-                }
+                }*/
             }
 
             return returnActions;
         }
     }
+    //Make AIAction a list, even if it's for only one
     public class Action : Noeud
     {
         public AIAction myAIAction;
@@ -182,7 +186,19 @@ namespace AI_BehaviorTree_AIImplementation
         {
             return state;
         }
+        public virtual State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return state;
+        }
+        public virtual State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard)
+        {
+            return state;
+        }
         public virtual AIAction GetAIAction()
+        {
+            return myAIAction;
+        }
+        public virtual AIAction GetAIAction(BlackBoard theBlackBoard)
         {
             return myAIAction;
         }
@@ -202,11 +218,44 @@ namespace AI_BehaviorTree_AIImplementation
             return state;
         }
     }
-    public class ActionLook : Action
+    public class ActionSetTarget : Action
     {
-        /*public override State GetState(PlayerInformations myPlayerInfo)
+        public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
+        PlayerInformations potentialTarget = null;
+        //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
+        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            if(myPlayerInfo.)
-        }*/
+            potentialTarget = theBlackBoard.playerTarget;
+            if (potentialTarget == null || !potentialTarget.IsActive)
+            {
+                foreach (PlayerInformations playerInfo in playerInfos)
+                {
+                    if (!playerInfo.IsActive)
+                        continue;
+
+                    else if (playerInfo.PlayerId == myPlayerInfo.PlayerId)
+                        continue;
+                    else
+                    {
+                        if (potentialTarget == null)
+                        {
+                            potentialTarget = playerInfo;
+                        }
+                        else if (Vector3.Distance(myPlayerInfo.Transform.Position, playerInfo.Transform.Position) < 
+                            Vector3.Distance(myPlayerInfo.Transform.Position, potentialTarget.Transform.Position))
+                        {
+                            potentialTarget = playerInfo;
+                        }
+                    }
+                }
+            }
+            return State.SUCCESS;
+        }
+        public override AIAction GetAIAction(BlackBoard theBlackBoard)
+        {
+            myAIAction.Position = potentialTarget.Transform.Position;
+            theBlackBoard.playerTarget = potentialTarget;
+            return myAIAction;
+        }
     }
 }
