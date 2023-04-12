@@ -120,6 +120,7 @@ namespace AI_BehaviorTree_AIImplementation
     public class BlackBoard
     {
         public int playerTarget = -1;
+        public int potebntialTargetID = -1;
     }
 
     public class Noeud 
@@ -286,6 +287,7 @@ namespace AI_BehaviorTree_AIImplementation
                             Vector3.Distance(myPlayerInfo.Transform.Position, potentialTarget.Transform.Position))
                         {
                             potentialTarget = playerInfo;
+                            theBlackBoard.potebntialTargetID = playerInfo.PlayerId;
                         }
                     }
                 }
