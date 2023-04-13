@@ -120,11 +120,11 @@ namespace AI_BehaviorTree_AIImplementation
     public class BehaviorTree
     {
         public int IDPlayer = -1;
-        public Selector mySelector;
+        public Selector mySelector = new Selector();
 
-        public List<Action> actionToRealize;
-        public List<AIAction> listAIActions;
-        public BlackBoard myBlackBoard;
+        public List<Action> actionToRealize = new List<Action>();
+        public List<AIAction> listAIActions=new List<AIAction>();
+        public BlackBoard myBlackBoard = new BlackBoard();
 
         public void getSelectorActions()
         {
@@ -154,8 +154,8 @@ namespace AI_BehaviorTree_AIImplementation
 
     public class Noeud 
     {
-        public State state;
-        public List<Action> listActions;
+        public State state = new State();
+        public List<Action> listActions = new List<Action>();
 
         public List<Action> GetActions()
         {
@@ -164,8 +164,8 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class Selector : Noeud
     {
-        public Action defaultAction;
-        public List<Sequencer> listSequencer;
+        public Action defaultAction = new Action();
+        public List<Sequencer> listSequencer = new List<Sequencer>();
 
         public Selector()
         {
