@@ -22,7 +22,7 @@ namespace AI_BehaviorTree_AIImplementation
         public void SetAIId(int parAIId) { AIId = parAIId; }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
-        public string GetName() { return "CIRNO the STRONGEST"; }
+        public string GetName() { return "Jojo the STRONGEST"; }
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
@@ -128,11 +128,12 @@ namespace AI_BehaviorTree_AIImplementation
     {
        
         public int IDPlayer = -1;
-        public Selector mySelector;
+        public Selector mySelector = new Selector();
 
-        public List<Action> actionToRealize;
-        
-        public BlackBoard myBlackBoard;
+
+        public List<Action> actionToRealize = new List<Action>();
+        public BlackBoard myBlackBoard = new BlackBoard();
+
 
         public void getSelectorActions()
         {
@@ -164,8 +165,8 @@ namespace AI_BehaviorTree_AIImplementation
 
     public class Noeud 
     {
-        public State state;
-        public List<Action> listActions;
+        public State state = new State();
+        public List<Action> listActions = new List<Action>();
 
         public List<Action> GetActions()
         {
@@ -174,8 +175,8 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class Selector : Noeud
     {
-        public Action defaultAction;
-        public List<Sequencer> listSequencer;
+        public Action defaultAction = new Action();
+        public List<Sequencer> listSequencer = new List<Sequencer>();
 
         public Selector()
         {
@@ -289,7 +290,7 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class ActionDash : Action
     {
-        public new AIActionDash dash = new AIActionDash();
+        public new AIActionDash myAIAction = new AIActionDash();
         public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             if (myPlayerInfo.IsDashAvailable)
@@ -304,7 +305,7 @@ namespace AI_BehaviorTree_AIImplementation
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            return dash;
+            return myAIAction;
         }
     }
     public class ActionSetTarget : Action
