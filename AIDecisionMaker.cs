@@ -16,33 +16,44 @@ namespace AI_BehaviorTree_AIImplementation
         /// </summary>
         private int AIId = -1;
         public GameWorldUtils AIGameWorldUtils = new GameWorldUtils();
-        BehaviorTree behavior = new BehaviorTree();
-        ActionDash Ad = new ActionDash();
-        ActionSetTarget Ast = new ActionSetTarget();
-        ActionMoveToTarget Amtt = new ActionMoveToTarget();
+        BehaviorTree behavior;
+        ActionDash Ad;
+        ActionSetTarget Ast;
+        ActionMoveToTarget Amtt;
+        ActionMoveToWhala Amtw;
 
 
 
         // Ne pas utiliser cette fonction, elle n'est utile que pour le jeu qui vous Set votre Id, si vous voulez votre Id utilisez AIId
-        public void SetAIId(int parAIId) { AIId = parAIId; }
+        public void SetAIId(int parAIId) { 
+            AIId = parAIId;
 
-        // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
-        public string GetName() { return "Jojo the STRONGEST"; }
-        //Same as Initialize
-        public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
-            AIGameWorldUtils = parGameWorldUtils;
+            behavior = new BehaviorTree();
+            Ad = new ActionDash();
+            Ast = new ActionSetTarget();
+            Amtt = new ActionMoveToTarget();
+            Amtw = new ActionMoveToWhala();
             behavior.IDPlayer = AIId;
-
+            
 
             behavior.mySelector.defaultAction = Ad;
-
 
             Sequencer Sequence1 = new Sequencer();
             behavior.mySelector.AddSequencer(Sequence1);
 
 
-            Sequence1.addAction(Ast);
-            Sequence1.addAction(Amtt);
+            Sequence1.addAction(Amtw);
+         //   Sequence1.addAction(Amtt);
+            
+        }
+
+        // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
+        public string GetName() { return "CIRNO the STRONGEST"; }
+        //Same as Initialize
+        public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
+            AIGameWorldUtils = parGameWorldUtils;
+            
+            
 
             //initialize your actions/parameters and such here
         }
@@ -105,7 +116,7 @@ namespace AI_BehaviorTree_AIImplementation
 
             behavior.mySelector.LaunchSelector(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
             behavior.getSelectorActions();
-            Debug.LogError(behavior.actionToRealize.Count);
+            
             actionList = behavior.getAIActions(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
             return actionList;
         }
@@ -155,17 +166,12 @@ namespace AI_BehaviorTree_AIImplementation
             }
             return listAIActions;
         }
-
-        /*public List<Action> GetActions(PlayerInformations myPlayerInfo, List<PlayerInformations> playerInfos, BlackBoard theBlackBoard)
-
-        {
-            //Fait ton call en envoyant myPlayerInfo et the BlackBoard
-        }*/
     }
     public class BlackBoard
     {
         public int playerTarget = -1;
         public int potentialTargetID = -1;
+        public Vector3 distance = new Vector3();
     }
 
     public class Noeud 
@@ -209,7 +215,15 @@ namespace AI_BehaviorTree_AIImplementation
                 {
                     listActions = listSequencer[i].GetActions();
                     this.state = State.SUCCESS;
+                    Debug.LogError(listActions.Count);
                     return;
+                }
+                else
+                {
+                    Debug.LogError("Whala c'est faux");
+                    listActions = new List<Action>();
+                    listActions.Add(defaultAction);
+                    this.state = State.SUCCESS;
                 }
                 if( i == listSequencer.Count)
                 {
@@ -246,7 +260,11 @@ namespace AI_BehaviorTree_AIImplementation
                 if (listActions[i].GetState(myPlayerInfo, theBlackBoard, playerInfos) == State.FAILURE)
                 {
                     listActions = new List<Action>();
+                    state = State.FAILURE;
                     return;
+                }else
+                {
+                    state = State.SUCCESS;
                 }
                 if (i == listActions.Count)
                 {
@@ -306,7 +324,7 @@ namespace AI_BehaviorTree_AIImplementation
             {
                 state = State.FAILURE;
             }
-            Debug.Log(state);
+            
             return state;
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -394,6 +412,28 @@ namespace AI_BehaviorTree_AIImplementation
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             myAIAction.Position = target.Transform.Position;
+            return myAIAction;
+        }
+    }
+
+
+    public class ActionMoveToWhala : Action
+    {
+        public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
+        PlayerInformations target = null;
+        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            Debug.LogError(Vector3.Distance(myPlayerInfo.Transform.Position, myAIAction.Position));
+            if(Vector3.Distance(myPlayerInfo.Transform.Position , myAIAction.Position)< 1.5)
+            {
+                
+                return State.FAILURE;
+            }
+            return State.SUCCESS;
+        }
+        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            myAIAction.Position = new Vector3(0,0,0) ;
             return myAIAction;
         }
     }
