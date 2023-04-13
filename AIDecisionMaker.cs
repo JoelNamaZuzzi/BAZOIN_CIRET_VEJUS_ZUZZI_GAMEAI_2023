@@ -81,6 +81,19 @@ namespace AI_BehaviorTree_AIImplementation
             actionList.Add(new AIActionFire());*/
 
             List<AIAction> actionList = new List<AIAction>();
+            ActionDash Ad = new ActionDash();
+            BehaviorTree bt;
+            Selector mainbehavior = new Selector();
+            mainbehavior.defaultAction = Ad;
+
+
+            Sequencer Sequence1 = new Sequencer();
+
+            ActionSetTarget Ast = new ActionSetTarget();
+            ActionMoveToTarget Amtt = new ActionMoveToTarget();
+
+            Sequence1.addAction(Ast);
+            Sequence1.addAction(Amtt);
 
             return actionList;
         }
@@ -150,12 +163,19 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class Selector : Noeud
     {
-        Action defaultAction;
-        List<Sequencer> listSequencer;
+        public Action defaultAction;
+        public List<Sequencer> listSequencer;
 
-        Selector()
+        public Selector()
         {
             listSequencer = new List<Sequencer>();
+            state = State.NOT_EXECUTED;
+        }
+
+        public Selector(Action ActionDefault)
+        {
+            listSequencer = new List<Sequencer>();
+            this.defaultAction = ActionDefault;
             state = State.NOT_EXECUTED;
         }
 
