@@ -128,14 +128,15 @@ namespace AI_BehaviorTree_AIImplementation
 
         public void getSelectorActions()
         {
+
             actionToRealize = mySelector.GetActions();
         }
 
-        public void getAIActions()
+        public void getAIActions(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             foreach (var action in actionToRealize)
             {
-                listAIActions.Add(action.GetAIAction());
+                listAIActions.Add(action.GetAIAction(theBlackBoard, playerInfos));
             }
         }
 
@@ -183,12 +184,12 @@ namespace AI_BehaviorTree_AIImplementation
         /// lance le selector, qui va check l'état des Sequence et recuperer les actions a effectuer 
         /// </summary>
         /// <param name="myPlayerInfo"></param>
-        public void LaunchSelector(PlayerInformations myPlayerInfo)
+        public void LaunchSelector(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
 
             for (int i = 0; i < listSequencer.Count; i++)
             {
-                listSequencer[i].LaunchSequencer(myPlayerInfo);
+                listSequencer[i].LaunchSequencer(myPlayerInfo, theBlackBoard, playerInfos);
                 if (listSequencer[i].state == State.SUCCESS)
                 {
                     listActions = listSequencer[i].GetActions();
@@ -223,11 +224,11 @@ namespace AI_BehaviorTree_AIImplementation
             listActions.Add(a);
         }
 
-        public void LaunchSequencer(PlayerInformations myPlayerInfo)
+        public void LaunchSequencer(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             for (int i = 0; i< listActions.Count; i++)
             {
-                if (listActions[i].GetState(myPlayerInfo) == State.FAILURE)
+                if (listActions[i].GetState(myPlayerInfo, theBlackBoard, playerInfos) == State.FAILURE)
                 {
                     listActions = new List<Action>();
                     return;
@@ -244,18 +245,18 @@ namespace AI_BehaviorTree_AIImplementation
     public class Action : Noeud
     {
         public AIAction myAIAction;
-        public virtual State GetState(PlayerInformations myPlayerInfo)
+        /*public virtual State GetState(PlayerInformations myPlayerInfo)
         {
             return state;
         }
         public virtual State GetState(BlackBoard theBlackBoard)
         {
             return state;
-        }
+        }*/
         public virtual State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return state;
-        }
+        }/*
         public virtual State GetState(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return state;
@@ -271,7 +272,7 @@ namespace AI_BehaviorTree_AIImplementation
         public virtual AIAction GetAIAction(BlackBoard theBlackBoard)
         {
             return myAIAction;
-        }
+        }*/
         public virtual AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return myAIAction;
@@ -279,7 +280,8 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class ActionDash : Action
     {
-        public override State GetState(PlayerInformations myPlayerInfo)
+        public new AIActionDash dash = new AIActionDash();
+        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             if (myPlayerInfo.IsDashAvailable)
             {
@@ -290,6 +292,10 @@ namespace AI_BehaviorTree_AIImplementation
                 state = State.FAILURE;
             }
             return state;
+        }
+        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return dash;
         }
     }
     public class ActionSetTarget : Action
@@ -350,7 +356,7 @@ namespace AI_BehaviorTree_AIImplementation
     {
         public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
         PlayerInformations target = null;
-        public override State GetState(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             foreach (PlayerInformations playerInfo in playerInfos)
             {
@@ -368,7 +374,7 @@ namespace AI_BehaviorTree_AIImplementation
                 return State.FAILURE;
             }
         }
-        public override AIAction GetAIAction(BlackBoard theBlackBoard)
+        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             myAIAction.Position = target.Transform.Position;
             return myAIAction;
