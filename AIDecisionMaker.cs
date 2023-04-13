@@ -81,20 +81,27 @@ namespace AI_BehaviorTree_AIImplementation
             actionList.Add(new AIActionFire());*/
 
             List<AIAction> actionList = new List<AIAction>();
+
             ActionDash Ad = new ActionDash();
-            BehaviorTree bt;
+            ActionSetTarget Ast = new ActionSetTarget();
+            ActionMoveToTarget Amtt = new ActionMoveToTarget();
+
+            BehaviorTree bt = new BehaviorTree();
             Selector mainbehavior = new Selector();
+
             mainbehavior.defaultAction = Ad;
 
 
             Sequencer Sequence1 = new Sequencer();
-
-            ActionSetTarget Ast = new ActionSetTarget();
-            ActionMoveToTarget Amtt = new ActionMoveToTarget();
+            bt.mySelector.AddSequencer(Sequence1);
+          
 
             Sequence1.addAction(Ast);
             Sequence1.addAction(Amtt);
 
+
+            bt.mySelector.LaunchSelector(GetPlayerInfos(bt.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), bt.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
+            actionList = bt.getAIActions(GetPlayerInfos(bt.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), bt.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
             return actionList;
         }
 
@@ -119,11 +126,12 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class BehaviorTree
     {
+       
         public int IDPlayer = -1;
         public Selector mySelector;
 
         public List<Action> actionToRealize;
-        public List<AIAction> listAIActions;
+        
         public BlackBoard myBlackBoard;
 
         public void getSelectorActions()
@@ -132,12 +140,14 @@ namespace AI_BehaviorTree_AIImplementation
             actionToRealize = mySelector.GetActions();
         }
 
-        public void getAIActions(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public List<AIAction> getAIActions(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
+            List<AIAction> listAIActions = new List<AIAction>();
             foreach (var action in actionToRealize)
             {
                 listAIActions.Add(action.GetAIAction(theBlackBoard, playerInfos));
             }
+            return listAIActions;
         }
 
         /*public List<Action> GetActions(PlayerInformations myPlayerInfo, List<PlayerInformations> playerInfos, BlackBoard theBlackBoard)
@@ -186,7 +196,6 @@ namespace AI_BehaviorTree_AIImplementation
         /// <param name="myPlayerInfo"></param>
         public void LaunchSelector(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-
             for (int i = 0; i < listSequencer.Count; i++)
             {
                 listSequencer[i].LaunchSequencer(myPlayerInfo, theBlackBoard, playerInfos);

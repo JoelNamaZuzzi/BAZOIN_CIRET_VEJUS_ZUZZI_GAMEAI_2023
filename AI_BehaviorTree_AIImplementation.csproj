@@ -7,7 +7,7 @@
     <ProjectGuid>{B8AB6DF7-A5F6-408B-A1CC-85F7CC22B68A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AI_BehaviorTree_AIImplementation</RootNamespace>
+    <RootNamespace>AI_BehaviorTree_AIImplementation_2</RootNamespace>
     <AssemblyName>AI_BehaviorTree_AIImplementation_2</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
