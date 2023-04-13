@@ -22,7 +22,7 @@ namespace AI_BehaviorTree_AIImplementation
         public void SetAIId(int parAIId) { AIId = parAIId; }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
-        public string GetName() { return "CIRNO the STRONGEST"; }
+        public string GetName() { return "Jojo the STRONGEST"; }
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
@@ -260,7 +260,7 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class ActionDash : Action
     {
-        public new AIActionDash dash = new AIActionDash();
+        public new AIActionDash myAIAction = new AIActionDash();
         public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             if (myPlayerInfo.IsDashAvailable)
@@ -275,7 +275,7 @@ namespace AI_BehaviorTree_AIImplementation
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            return dash;
+            return myAIAction;
         }
     }
     public class ActionSetTarget : Action
