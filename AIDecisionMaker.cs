@@ -17,6 +17,11 @@ namespace AI_BehaviorTree_AIImplementation
         private int AIId = -1;
         public GameWorldUtils AIGameWorldUtils = new GameWorldUtils();
         BehaviorTree behavior = new BehaviorTree();
+        ActionDash Ad = new ActionDash();
+        ActionSetTarget Ast = new ActionSetTarget();
+        ActionMoveToTarget Amtt = new ActionMoveToTarget();
+
+
 
         // Ne pas utiliser cette fonction, elle n'est utile que pour le jeu qui vous Set votre Id, si vous voulez votre Id utilisez AIId
         public void SetAIId(int parAIId) { AIId = parAIId; }
@@ -27,6 +32,18 @@ namespace AI_BehaviorTree_AIImplementation
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
             behavior.IDPlayer = AIId;
+
+
+            behavior.mySelector.defaultAction = Ad;
+
+
+            Sequencer Sequence1 = new Sequencer();
+            behavior.mySelector.AddSequencer(Sequence1);
+
+
+            Sequence1.addAction(Ast);
+            Sequence1.addAction(Amtt);
+
             //initialize your actions/parameters and such here
         }
 
@@ -82,24 +99,13 @@ namespace AI_BehaviorTree_AIImplementation
 
             List<AIAction> actionList = new List<AIAction>();
 
-            ActionDash Ad = new ActionDash();
-            ActionSetTarget Ast = new ActionSetTarget();
-            ActionMoveToTarget Amtt = new ActionMoveToTarget();
+            
 
-            Selector mainbehavior = new Selector();
-
-            mainbehavior.defaultAction = Ad;
-
-
-            Sequencer Sequence1 = new Sequencer();
-            behavior.mySelector.AddSequencer(Sequence1);
-          
-
-            Sequence1.addAction(Ast);
-            Sequence1.addAction(Amtt);
 
 
             behavior.mySelector.LaunchSelector(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
+            behavior.getSelectorActions();
+            Debug.LogError(behavior.actionToRealize.Count);
             actionList = behavior.getAIActions(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
             return actionList;
         }
@@ -300,6 +306,7 @@ namespace AI_BehaviorTree_AIImplementation
             {
                 state = State.FAILURE;
             }
+            Debug.Log(state);
             return state;
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
