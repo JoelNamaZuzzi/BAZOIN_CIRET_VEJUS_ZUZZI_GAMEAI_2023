@@ -86,22 +86,21 @@ namespace AI_BehaviorTree_AIImplementation
             ActionSetTarget Ast = new ActionSetTarget();
             ActionMoveToTarget Amtt = new ActionMoveToTarget();
 
-            BehaviorTree bt = new BehaviorTree();
             Selector mainbehavior = new Selector();
 
             mainbehavior.defaultAction = Ad;
 
 
             Sequencer Sequence1 = new Sequencer();
-            bt.mySelector.AddSequencer(Sequence1);
+            behavior.mySelector.AddSequencer(Sequence1);
           
 
             Sequence1.addAction(Ast);
             Sequence1.addAction(Amtt);
 
 
-            bt.mySelector.LaunchSelector(GetPlayerInfos(bt.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), bt.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
-            actionList = bt.getAIActions(GetPlayerInfos(bt.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), bt.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
+            behavior.mySelector.LaunchSelector(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
+            actionList = behavior.getAIActions(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
             return actionList;
         }
 
