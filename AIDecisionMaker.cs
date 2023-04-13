@@ -21,7 +21,7 @@ namespace AI_BehaviorTree_AIImplementation
         ActionSetTarget Ast;
         ActionMoveToTarget Amtt;
         ActionMoveToWhala Amtw;
-
+        ActionFIRE Af;
 
 
         // Ne pas utiliser cette fonction, elle n'est utile que pour le jeu qui vous Set votre Id, si vous voulez votre Id utilisez AIId
@@ -31,6 +31,7 @@ namespace AI_BehaviorTree_AIImplementation
             behavior = new BehaviorTree();
             Ad = new ActionDash();
             Ast = new ActionSetTarget();
+            Af = new ActionFIRE();
             Amtt = new ActionMoveToTarget();
             Amtw = new ActionMoveToWhala();
             behavior.IDPlayer = AIId;
@@ -42,8 +43,8 @@ namespace AI_BehaviorTree_AIImplementation
             behavior.mySelector.AddSequencer(Sequence1);
 
 
-            Sequence1.addAction(Amtw);
-         //   Sequence1.addAction(Amtt);
+            Sequence1.addAction(Ast);
+            Sequence1.addAction(Af);
             
         }
 
@@ -434,6 +435,19 @@ namespace AI_BehaviorTree_AIImplementation
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             myAIAction.Position = new Vector3(0,0,0) ;
+            return myAIAction;
+        }
+    }
+
+    public class ActionFIRE : Action
+    {
+        public new AIActionFire myAIAction = new AIActionFire();
+        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+          return State.SUCCESS;
+        }
+        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
             return myAIAction;
         }
     }
