@@ -304,6 +304,7 @@ namespace AI_BehaviorTree_AIImplementation
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
+            myAIAction.Direction = new Vector3(90f, 0, 90f);
             return myAIAction;
         }
     }
