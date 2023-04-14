@@ -41,7 +41,7 @@ namespace AI_BehaviorTree_AIImplementation
 
             Sequencer Sequence1 = new Sequencer();
             behavior.root.AddSequencer(Sequence1);
-            behavior.root.AddSequencer(Af);
+            
 
             Sequence1.addAction(Ast);
             Sequence1.addAction(Af);
@@ -185,25 +185,26 @@ namespace AI_BehaviorTree_AIImplementation
             return listActions;
         }
 
-        public virtual void Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public virtual State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             Debug.LogError("Ton cast pu ");
+            return this.state;
         }
     }
     public class Selector : Noeud
     {
         public Action defaultAction = new Action();
-        public List<Noeud> listSequencer = new List<Noeud>();
+        public List<Noeud> listNoeud = new List<Noeud>();
 
         public Selector()
         {
-            listSequencer = new List<Noeud>();
+            listNoeud = new List<Noeud>();
             state = State.NOT_EXECUTED;
         }
 
         public Selector(Action ActionDefault)
         {
-            listSequencer = new List<Noeud>();
+            listNoeud = new List<Noeud>();
             this.defaultAction = ActionDefault;
             state = State.NOT_EXECUTED;
         }
@@ -212,17 +213,18 @@ namespace AI_BehaviorTree_AIImplementation
         /// lance le selector, qui va check l'état des Sequence et recuperer les actions a effectuer 
         /// </summary>
         /// <param name="myPlayerInfo"></param>
-        public override void Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            for (int i = 0; i < listSequencer.Count; i++)
+            for (int i = 0; i < listNoeud.Count; i++)
             {
-                listSequencer[i].Launch(myPlayerInfo, theBlackBoard, playerInfos);
-                if (listSequencer[i].state == State.SUCCESS)
+               
+                listNoeud[i].Launch(myPlayerInfo, theBlackBoard, playerInfos);
+                if (listNoeud[i].state == State.SUCCESS)
                 {
-                    listActions = listSequencer[i].GetActions();
+                    listActions = listNoeud[i].GetActions();
                     this.state = State.SUCCESS;
-                    Debug.LogError(listActions.Count);
-                    return;
+                    
+                    return this.state;
                 }
                 else
                 {
@@ -230,14 +232,15 @@ namespace AI_BehaviorTree_AIImplementation
                     listActions.Add(defaultAction);
                     this.state = State.SUCCESS;
                 }
-                if( i == listSequencer.Count)
+                if( i == listNoeud.Count)
                 {
                     listActions = new List<Action>();
                     listActions.Add(defaultAction);
                     this.state = State.SUCCESS;
-                    return;
+                    return this.state;
                 }
             }
+            return this.state;
         } 
 
         /// <summary>
@@ -247,9 +250,8 @@ namespace AI_BehaviorTree_AIImplementation
 
        public void AddSequencer(Noeud s)
         {
-            listSequencer.Add(s);
+            listNoeud.Add(s);
         }
-
     }
     public class Sequencer : Noeud
     {
@@ -258,15 +260,15 @@ namespace AI_BehaviorTree_AIImplementation
             listActions.Add(a);
         }
 
-        public void Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             for (int i = 0; i< listActions.Count; i++)
             {
-                if (listActions[i].GetState(myPlayerInfo, theBlackBoard, playerInfos) == State.FAILURE)
+                if (listActions[i].Launch(myPlayerInfo, theBlackBoard, playerInfos) == State.FAILURE)
                 {
                     listActions = new List<Action>();
                     state = State.FAILURE;
-                    return;
+                    return this.state;
                 }else
                 {
                     state = State.SUCCESS;
@@ -275,14 +277,24 @@ namespace AI_BehaviorTree_AIImplementation
                 {
                     this.state = State.SUCCESS;
                 }
-
             }
+            return this.state;
         }
     }
 
-    public class Decorateur : Noeud
+    public class AllwaysSuccess : Noeud
     {
         List<Noeud> actions = new List<Noeud>();
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            for (int i = 0; i < actions.Count; i++)
+            {
+                if (actions[i].Launch(myPlayerInfo, theBlackBoard, playerInfos) == State.FAILURE)
+                {
+                }
+            }
+            return this.state;
+        }
     }
 
 
@@ -299,11 +311,11 @@ namespace AI_BehaviorTree_AIImplementation
         public virtual State GetState(BlackBoard theBlackBoard)
         {
             return state;
-        }*/
-        public virtual State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        }
+        public virtual State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return state;
-        }/*
+        }
         public virtual State GetState(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return state;
@@ -328,7 +340,7 @@ namespace AI_BehaviorTree_AIImplementation
     public class ActionDash : Action
     {
         public new AIActionDash myAIAction = new AIActionDash();
-        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             if (myPlayerInfo.IsDashAvailable)
             {
@@ -352,7 +364,7 @@ namespace AI_BehaviorTree_AIImplementation
         public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
         PlayerInformations potentialTarget = null;
         //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
-        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             foreach (PlayerInformations playerInfo in playerInfos)
             {
@@ -405,7 +417,7 @@ namespace AI_BehaviorTree_AIImplementation
     {
         public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
         PlayerInformations target = null;
-        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             foreach (PlayerInformations playerInfo in playerInfos)
             {
@@ -435,9 +447,9 @@ namespace AI_BehaviorTree_AIImplementation
     {
         public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
         PlayerInformations target = null;
-        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            Debug.LogError(Vector3.Distance(myPlayerInfo.Transform.Position, myAIAction.Position));
+            
             if(Vector3.Distance(myPlayerInfo.Transform.Position , myAIAction.Position)< 1.5)
             {
                 
@@ -455,7 +467,7 @@ namespace AI_BehaviorTree_AIImplementation
     public class ActionFIRE : Action
     {
         public new AIActionFire myAIAction = new AIActionFire();
-        public override State GetState(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
           return State.SUCCESS;
         }
