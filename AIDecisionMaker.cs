@@ -19,12 +19,12 @@ namespace AI_BehaviorTree_AIImplementation
         BehaviorTree behavior;
 
         // Ne pas utiliser cette fonction, elle n'est utile que pour le jeu qui vous Set votre Id, si vous voulez votre Id utilisez AIId
-        public void SetAIId(int parAIId) { 
+        public void SetAIId(int parAIId) {
             AIId = parAIId;
 
             behavior = new BehaviorTree();
             behavior.IDPlayer = AIId;
-            
+
 
             behavior.root.defaultAction = new ActionMoveToWhala();
 
@@ -41,11 +41,11 @@ namespace AI_BehaviorTree_AIImplementation
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
         public string GetName() { return "Pas Lui"; }
         //Same as Initialize
-        public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
+        public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) {
             AIGameWorldUtils = parGameWorldUtils;
             behavior.myBlackBoard.worldState = parGameWorldUtils;
-            
-            
+
+
 
             //initialize your actions/parameters and such here
         }
@@ -102,13 +102,13 @@ namespace AI_BehaviorTree_AIImplementation
 
             List<AIAction> actionList = new List<AIAction>();
 
-            
+
 
 
 
             behavior.root.Launch(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
             behavior.getSelectorActions();
-            
+
             actionList = behavior.getAIActions(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
             return actionList;
         }
@@ -134,7 +134,7 @@ namespace AI_BehaviorTree_AIImplementation
     }
     public class BehaviorTree
     {
-       
+
         public int IDPlayer = -1;
         public Selector root = new Selector();
 
@@ -167,7 +167,7 @@ namespace AI_BehaviorTree_AIImplementation
         public GameWorldUtils worldState;
     }
 
-    public class Noeud 
+    public class Noeud
     {
         public State state = new State();
         public List<Action> listActions = new List<Action>();
@@ -179,7 +179,7 @@ namespace AI_BehaviorTree_AIImplementation
 
         public virtual State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            Debug.LogError("Ton cast pu ");
+            //Debug.LogError("Ton cast pu ");
             return this.state;
         }
     }
@@ -202,20 +202,20 @@ namespace AI_BehaviorTree_AIImplementation
         }
 
         /// <summary>
-        /// lance le selector, qui va check l'état des Sequence et recuperer les actions a effectuer 
+        /// lance le selector, qui va check l'état des Sequence et recuperer les actions a effectuer
         /// </summary>
         /// <param name="myPlayerInfo"></param>
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             for (int i = 0; i < listNoeud.Count; i++)
             {
-               
+
                 listNoeud[i].Launch(myPlayerInfo, theBlackBoard, playerInfos);
                 if (listNoeud[i].state == State.SUCCESS)
                 {
                     listActions = listNoeud[i].GetActions();
                     this.state = State.SUCCESS;
-                    
+
                     return this.state;
                 } else
                 if (listNoeud[i].state == State.RUNNING)
@@ -238,10 +238,10 @@ namespace AI_BehaviorTree_AIImplementation
                 }
             }
             return this.state;
-        } 
+        }
 
         /// <summary>
-        /// Ajoute une sequence a la liste des Sequence 
+        /// Ajoute une sequence a la liste des Sequence
         /// </summary>
         /// <param name="s"></param>
 
@@ -324,7 +324,7 @@ namespace AI_BehaviorTree_AIImplementation
         State state2 = new State();
         paralleleEnum Categorie = new paralleleEnum();
         List<State> tabState = new List<State>();
-        
+
 
         Parallele(paralleleEnum p)
         {
@@ -378,7 +378,7 @@ namespace AI_BehaviorTree_AIImplementation
                     return State.RUNNING;
                     break;
                 default:
-                    Debug.LogError("Cheh");
+                    //Debug.LogError("Cheh");
                     break;
             }
             return State.RUNNING;
@@ -437,7 +437,7 @@ namespace AI_BehaviorTree_AIImplementation
             {
                 state = State.FAILURE;
             }
-            
+
             return state;
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -476,7 +476,7 @@ namespace AI_BehaviorTree_AIImplementation
                         {
                             potentialTarget = playerInfo;
                         }
-                        else if (Vector3.Distance(myPlayerInfo.Transform.Position, playerInfo.Transform.Position) < 
+                        else if (Vector3.Distance(myPlayerInfo.Transform.Position, playerInfo.Transform.Position) <
                             Vector3.Distance(myPlayerInfo.Transform.Position, potentialTarget.Transform.Position))
                         {
                             potentialTarget = playerInfo;
@@ -530,10 +530,10 @@ namespace AI_BehaviorTree_AIImplementation
                         else if (playerInfo.CurrentHealth < potentialTarget.CurrentHealth)
                         {
                             potentialTarget = playerInfo;
-                            
+
                         }
                     }
-                    
+
                 }
                 theBlackBoard.playerTarget = potentialTarget.PlayerId;
             }
@@ -583,10 +583,10 @@ namespace AI_BehaviorTree_AIImplementation
         PlayerInformations target = null;
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            
+
             if(Vector3.Distance(myPlayerInfo.Transform.Position , myAIAction.Position)< 1.5)
             {
-                
+
                 return State.FAILURE;
             }
             return State.SUCCESS;
