@@ -41,11 +41,11 @@ namespace AI_BehaviorTree_AIImplementation
 
             Sequencer Sequence1 = new Sequencer();
             behavior.root.AddSequencer(Sequence1);
-            
 
             Sequence1.addAction(Ast);
-            Sequence1.addAction(Af);
-            
+            Sequence1.addAction(Amtt);
+
+
         }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
@@ -459,10 +459,11 @@ namespace AI_BehaviorTree_AIImplementation
     public class ActionSetTarget : Action
     {
         public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
-        PlayerInformations potentialTarget = null;
+        PlayerInformations potentialTarget;
         //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
+            potentialTarget = null;
             foreach (PlayerInformations playerInfo in playerInfos)
             {
                 if (playerInfo.PlayerId == theBlackBoard.playerTarget)
@@ -489,11 +490,13 @@ namespace AI_BehaviorTree_AIImplementation
                             Vector3.Distance(myPlayerInfo.Transform.Position, potentialTarget.Transform.Position))
                         {
                             potentialTarget = playerInfo;
-                            theBlackBoard.potentialTargetID = playerInfo.PlayerId;
                         }
                     }
+                    theBlackBoard.playerTarget = playerInfo.PlayerId;
                 }
             }
+
+            Debug.LogError("target id" + theBlackBoard.playerTarget);
             return State.SUCCESS;
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -537,7 +540,7 @@ namespace AI_BehaviorTree_AIImplementation
                         else if (playerInfo.CurrentHealth < potentialTarget.CurrentHealth)
                         {
                             potentialTarget = playerInfo;
-                            theBlackBoard.potentialTargetID = playerInfo.PlayerId;
+                            theBlackBoard.playerTarget = playerInfo.PlayerId;
                         }
                     }
                 }
@@ -553,6 +556,7 @@ namespace AI_BehaviorTree_AIImplementation
         PlayerInformations target = null;
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
+            Debug.LogError("target id" + theBlackBoard.playerTarget);
             foreach (PlayerInformations playerInfo in playerInfos)
             {
                 if (playerInfo.PlayerId == theBlackBoard.playerTarget)
