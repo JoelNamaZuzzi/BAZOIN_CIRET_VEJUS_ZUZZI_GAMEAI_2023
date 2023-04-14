@@ -27,36 +27,34 @@ namespace AI_BehaviorTree_AIImplementation
             behavior = new BehaviorTree();
             behavior.IDPlayer = AIId;
 
-            paralleleEnum paraEnum = paralleleEnum.BOTH;
-            Parallele para = new Parallele(paraEnum);
-            para.addAction(new ActionSetLowHealthTarget());
-            para.addAction(new ActionFIRE());
+            
 
-            behavior.root.defaultAction = para;
+            behavior.root.defaultAction = new ActionMoveToCenter();
 
             Sequencer esquiveSequence = new Sequencer();
 
-           // Sequencer Sequence1 = new Sequencer();
+            // behavior.root.AddSequencer(Sequence1);
 
-            behavior.root.AddSequencer(esquiveSequence);
-           // behavior.root.AddSequencer(Sequence1);
 
-            
-
-            esquiveSequence.addNoeud(new ActionTargetCloser());
+           // esquiveSequence.addNoeud(new ActionDash());
+            esquiveSequence.addNoeud(new ActionSetLowHealthTarget());
             esquiveSequence.addNoeud(new ActionMoveToTarget());
-          
+            esquiveSequence.addNoeud(new ActionFIRE());
+
+
            // Sequence1.addNoeud(new ActionDash());
             paralleleEnum paraEnum3 = paralleleEnum.BOTH;
             Parallele para3 = new Parallele(paraEnum3);
-            esquiveSequence.addNoeud(para3);
-            para3.addAction(new ActionDash());
-
+           
+            // para3.addAction(new ActionDash());
+            Sequencer sequenceEsquive = new Sequencer();
+            sequenceEsquive.addNoeud(para3);
             para3.addAction(new ActionFIRE());
+            para3.addAction(new ActionDashdroite());
 
-            
+            behavior.root.AddSequencer(sequenceEsquive);
 
-            
+            behavior.root.AddSequencer(esquiveSequence);
             //Sequence1.addNoeud(new ActionFIRE());
 
 
@@ -64,7 +62,7 @@ namespace AI_BehaviorTree_AIImplementation
         }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
-        public string GetName() { return "CIRNO THE CHOOSEN ONE"; }
+        public string GetName() { return "THE SADDEST"; }
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) {
             AIGameWorldUtils = parGameWorldUtils;
@@ -281,11 +279,20 @@ namespace AI_BehaviorTree_AIImplementation
     public class ForcedSuccess : Noeud
     {
         List<Noeud> actions = new List<Noeud>();
+
+        public void AddAction(Noeud a)
+        {
+            actions.Add(a);
+        }
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
             for (int i = 0; i < actions.Count; i++)
             {
-               this.state = actions[i].Launch(myPlayerInfo, theBlackBoard, playerInfos, listAction);
+                this.state = actions[i].Launch(myPlayerInfo, theBlackBoard, playerInfos, listAction);
+                if (state == State.SUCCESS)
+                {
+                    listAction.Add(actions[i]);
+                }
             }
             return State.SUCCESS;
         }
@@ -294,6 +301,10 @@ namespace AI_BehaviorTree_AIImplementation
     public class ForcedFailed : Noeud
     {
         List<Noeud> actions = new List<Noeud>();
+        public void AddAction(Noeud a)
+        {
+            actions.Add(a);
+        }
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
             for (int i = 0; i < actions.Count; i++)
@@ -424,21 +435,8 @@ namespace AI_BehaviorTree_AIImplementation
 
                         Vector3 perpendiculaire = new Vector3(directionNormaliser.z, 0, -directionNormaliser.x).normalized;
 
-                        float crossProduct = Vector3.Cross(directionNormaliser, perpendiculaire).y;
-
-
-                        float avoidanceDirection = 0;
-                        if (crossProduct > 0)
-                        {
-                            avoidanceDirection = 1;
-                        }
-                        else if (crossProduct < 0)
-                        {
-                            avoidanceDirection = -1;
-                        }
-
-
-                        myAIAction.Direction = perpendiculaire * avoidanceDirection;
+                        myAIAction.Direction = perpendiculaire;
+                        Debug.LogError(perpendiculaire);
                     }
                 }
             }
@@ -626,16 +624,7 @@ namespace AI_BehaviorTree_AIImplementation
                     }
 
                 }
-                if (myPlayerInfo.CurrentHealth < myPlayerInfo.MaxHealth / 2)
-                {
-                    foreach (BonusInformations bonus in theBlackBoard.worldState.GetBonusInfosList())
-                    {
-                        if (Vector3.Distance(bonus.Position, myPlayerInfo.Transform.Position) < Vector3.Distance(potentialTarget.Transform.Position, myPlayerInfo.Transform.Position))
-                        {
-                            potentialTarget.Transform.Position = bonus.Position;
-                        }
-                    }
-                }
+                
 
                 theBlackBoard.playerTarget = potentialTarget.PlayerId;
             }
@@ -680,6 +669,69 @@ namespace AI_BehaviorTree_AIImplementation
 
 
             myAIAction.Direction = new Vector3((float)nombreAleatoire, (float)nombreAleatoire2, (float)nombreAleatoire3);
+            return myAIAction;
+        }
+    }
+
+    public class ActionMoveToCenter : Noeud
+    {
+        public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
+        PlayerInformations target = null;
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+
+            if (Vector3.Distance(myPlayerInfo.Transform.Position, myAIAction.Position) < 1.5)
+            {
+
+                return State.FAILURE;
+            }
+            return State.SUCCESS;
+        }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            myAIAction.Position = new Vector3(0, 0, 0);
+            return myAIAction;
+        }
+    }
+
+    public class ActionDashdroite : Noeud
+    {
+        public new AIActionDash myAIAction = new AIActionDash();
+
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            if (myPlayerInfo.IsDashAvailable)
+            {
+                
+                    state = State.SUCCESS;
+                
+                
+            }
+            else
+            {
+                state = State.FAILURE;
+            }
+
+            foreach (var balles in theBlackBoard.worldState.GetProjectileInfosList())
+            {
+                if(Vector3.Distance(myPlayerInfo.Transform.Position,balles.Transform.Position) < 10)
+                {
+                    state = State.SUCCESS;
+                }
+                else
+                {
+                    state = State.FAILURE;
+                }
+            }
+
+                return state;
+        }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+           
+
+            myAIAction.Direction = myPlayerInfo.Transform.Rotation * Vector3.right;
+                        
             return myAIAction;
         }
     }
