@@ -33,9 +33,9 @@ namespace AI_BehaviorTree_AIImplementation
             Sequencer Sequence1 = new Sequencer();
             behavior.root.AddSequencer(Sequence1);
 
-            Sequence1.addAction(new ActionSetLowHealthTarget());
-            Sequence1.addAction(new ActionMoveToTarget());
-            Sequence1.addAction(new ActionFIRE());
+            Sequence1.addNoeud(new ActionSetLowHealthTarget());
+            Sequence1.addNoeud(new ActionMoveToTarget());
+            Sequence1.addNoeud(new ActionFIRE());
 
 
 
@@ -494,12 +494,12 @@ namespace AI_BehaviorTree_AIImplementation
     }
 
 
-    public class ActionSetLowHealthTarget : Action
+    public class ActionSetLowHealthTarget : Noeud
     {
         public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
         PlayerInformations potentialTarget;
         //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
-        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
             potentialTarget = null;
 
