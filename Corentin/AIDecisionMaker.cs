@@ -42,7 +42,7 @@ namespace AI_BehaviorTree_AIImplementation
         }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
-        public string GetName() { return "CIRNO"; }
+        public string GetName() { return "The Great Pas Lui DTC AAAAAAAAAAAAAAAA"; }
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils)
         {
