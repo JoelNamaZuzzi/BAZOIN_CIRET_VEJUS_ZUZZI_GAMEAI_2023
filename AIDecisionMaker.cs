@@ -189,7 +189,7 @@ namespace AI_BehaviorTree_AIImplementation
 
         public virtual State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            Debug.LogError("Ton cast pu ");
+            //Debug.LogError("Ton cast pu ");
             return this.state;
         }
     }
@@ -388,7 +388,7 @@ namespace AI_BehaviorTree_AIImplementation
                     return State.RUNNING;
                     break;
                 default:
-                    Debug.LogError("Cheh");
+                    //Debug.LogError("Cheh");
                     break;
             }
             return State.RUNNING;
@@ -496,7 +496,7 @@ namespace AI_BehaviorTree_AIImplementation
                 }
             }
 
-            Debug.LogError("target id" + theBlackBoard.playerTarget);
+            //Debug.LogError("target id" + theBlackBoard.playerTarget);
             return State.SUCCESS;
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -556,7 +556,7 @@ namespace AI_BehaviorTree_AIImplementation
         PlayerInformations target = null;
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            Debug.LogError("target id" + theBlackBoard.playerTarget);
+            //Debug.LogError("target id" + theBlackBoard.playerTarget);
             foreach (PlayerInformations playerInfo in playerInfos)
             {
                 if (playerInfo.PlayerId == theBlackBoard.playerTarget)
