@@ -413,6 +413,43 @@ namespace AI_BehaviorTree_AIImplementation
             return myAIAction;
         }
     }
+
+    public class ActionSetLowHealthTarget : Action
+    {
+        public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
+        PlayerInformations potentialTarget = null;
+        //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+           
+            if (potentialTarget == null || !potentialTarget.IsActive)
+            {
+                foreach (PlayerInformations playerInfo in playerInfos)
+                {
+                    if (!playerInfo.IsActive)
+                        continue;
+
+                    else if (playerInfo.PlayerId == myPlayerInfo.PlayerId)
+                        continue;
+                    else
+                    {
+                        if (potentialTarget == null)
+                        {
+                            potentialTarget = playerInfo;
+                        }
+                        else if (playerInfo.CurrentHealth < potentialTarget.CurrentHealth)
+                        {
+                            potentialTarget = playerInfo;
+                            theBlackBoard.potentialTargetID = playerInfo.PlayerId;
+                        }
+                    }
+                }
+            }
+            myAIAction.Position = potentialTarget.Transform.Position;
+            theBlackBoard.playerTarget = potentialTarget.PlayerId;
+            return State.SUCCESS;
+        }
+    }
     public class ActionMoveToTarget : Action
     {
         public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
