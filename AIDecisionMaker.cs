@@ -37,11 +37,11 @@ namespace AI_BehaviorTree_AIImplementation
             behavior.IDPlayer = AIId;
             
 
-            behavior.mySelector.defaultAction = Ad;
+            behavior.root.defaultAction = Ad;
 
             Sequencer Sequence1 = new Sequencer();
-            behavior.mySelector.AddSequencer(Sequence1);
-
+            behavior.root.AddSequencer(Sequence1);
+            behavior.root.AddSequencer(Af);
 
             Sequence1.addAction(Ast);
             Sequence1.addAction(Af);
@@ -115,7 +115,7 @@ namespace AI_BehaviorTree_AIImplementation
 
 
 
-            behavior.mySelector.LaunchSelector(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
+            behavior.root.Launch(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
             behavior.getSelectorActions();
             
             actionList = behavior.getAIActions(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList());
@@ -145,7 +145,7 @@ namespace AI_BehaviorTree_AIImplementation
     {
        
         public int IDPlayer = -1;
-        public Selector mySelector = new Selector();
+        public Selector root = new Selector();
 
 
         public List<Action> actionToRealize = new List<Action>();
@@ -155,7 +155,7 @@ namespace AI_BehaviorTree_AIImplementation
         public void getSelectorActions()
         {
 
-            actionToRealize = mySelector.GetActions();
+            actionToRealize = root.GetActions();
         }
 
         public List<AIAction> getAIActions(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -184,21 +184,26 @@ namespace AI_BehaviorTree_AIImplementation
         {
             return listActions;
         }
+
+        public virtual void Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            Debug.LogError("Ton cast pu ");
+        }
     }
     public class Selector : Noeud
     {
         public Action defaultAction = new Action();
-        public List<Sequencer> listSequencer = new List<Sequencer>();
+        public List<Noeud> listSequencer = new List<Noeud>();
 
         public Selector()
         {
-            listSequencer = new List<Sequencer>();
+            listSequencer = new List<Noeud>();
             state = State.NOT_EXECUTED;
         }
 
         public Selector(Action ActionDefault)
         {
-            listSequencer = new List<Sequencer>();
+            listSequencer = new List<Noeud>();
             this.defaultAction = ActionDefault;
             state = State.NOT_EXECUTED;
         }
@@ -207,11 +212,11 @@ namespace AI_BehaviorTree_AIImplementation
         /// lance le selector, qui va check l'état des Sequence et recuperer les actions a effectuer 
         /// </summary>
         /// <param name="myPlayerInfo"></param>
-        public void LaunchSelector(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override void Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             for (int i = 0; i < listSequencer.Count; i++)
             {
-                listSequencer[i].LaunchSequencer(myPlayerInfo, theBlackBoard, playerInfos);
+                listSequencer[i].Launch(myPlayerInfo, theBlackBoard, playerInfos);
                 if (listSequencer[i].state == State.SUCCESS)
                 {
                     listActions = listSequencer[i].GetActions();
@@ -221,7 +226,6 @@ namespace AI_BehaviorTree_AIImplementation
                 }
                 else
                 {
-                    Debug.LogError("Whala c'est faux");
                     listActions = new List<Action>();
                     listActions.Add(defaultAction);
                     this.state = State.SUCCESS;
@@ -241,7 +245,7 @@ namespace AI_BehaviorTree_AIImplementation
         /// </summary>
         /// <param name="s"></param>
 
-       public void AddSequencer(Sequencer s)
+       public void AddSequencer(Noeud s)
         {
             listSequencer.Add(s);
         }
@@ -254,7 +258,7 @@ namespace AI_BehaviorTree_AIImplementation
             listActions.Add(a);
         }
 
-        public void LaunchSequencer(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public void Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             for (int i = 0; i< listActions.Count; i++)
             {
@@ -275,6 +279,15 @@ namespace AI_BehaviorTree_AIImplementation
             }
         }
     }
+
+    public class Decorateur : Noeud
+    {
+        List<Noeud> actions = new List<Noeud>();
+    }
+
+
+
+
     //Make AIAction a list, even if it's for only one
     public class Action : Noeud
     {
