@@ -225,6 +225,11 @@ namespace AI_BehaviorTree_AIImplementation
                     this.state = State.SUCCESS;
                     
                     return this.state;
+                } else
+                if (listNoeud[i].state == State.RUNNING)
+                {
+                    this.state = State.RUNNING;
+                    return this.state;
                 }
                 else
                 {
@@ -270,6 +275,11 @@ namespace AI_BehaviorTree_AIImplementation
                     state = State.FAILURE;
                     return this.state;
                 }else
+                if (listActions[i].state == State.RUNNING)
+                {
+                    this.state = State.RUNNING;
+                    return this.state;
+                } else
                 {
                     state = State.SUCCESS;
                 }
@@ -282,21 +292,106 @@ namespace AI_BehaviorTree_AIImplementation
         }
     }
 
-    public class AllwaysSuccess : Noeud
+    public class ForcedSuccess : Noeud
     {
         List<Noeud> actions = new List<Noeud>();
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             for (int i = 0; i < actions.Count; i++)
             {
-                if (actions[i].Launch(myPlayerInfo, theBlackBoard, playerInfos) == State.FAILURE)
-                {
-                }
+               this.state = actions[i].Launch(myPlayerInfo, theBlackBoard, playerInfos);
             }
-            return this.state;
+            return State.SUCCESS;
         }
     }
 
+    public class ForcedFailed : Noeud
+    {
+        List<Noeud> actions = new List<Noeud>();
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            for (int i = 0; i < actions.Count; i++)
+            {
+                this.state = actions[i].Launch(myPlayerInfo, theBlackBoard, playerInfos);
+            }
+            return State.FAILURE;
+        }
+    }
+
+    enum paralleleEnum
+    {
+        FIRST,
+        SECOND,
+        BOTH
+    }
+
+    public class Parallele : Noeud
+    {
+        List<Noeud> actions = new List<Noeud>();
+        State state1 = new State();
+        State state2 = new State();
+        paralleleEnum Categorie = new paralleleEnum();
+        List<State> tabState = new List<State>();
+        
+
+        Parallele(paralleleEnum p)
+        {
+            Categorie = p;
+        }
+
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            this.state1 = actions[0].Launch(myPlayerInfo, theBlackBoard, playerInfos);
+            this.state2 = actions[1].Launch(myPlayerInfo, theBlackBoard, playerInfos);
+
+            return getState();
+        }
+
+        public State getState()
+        {
+            switch (Categorie)
+            {
+                case paralleleEnum.FIRST:
+                    if(state1 == State.SUCCESS || state2 == State.FAILURE)
+                    {
+                        return State.SUCCESS;
+                    }
+                    if(state1 == State.FAILURE || state2 == State.SUCCESS)
+                    {
+                        return State.FAILURE;
+                    }
+                    return State.RUNNING;
+
+                    break;
+                case paralleleEnum.SECOND:
+                    if (state2 == State.SUCCESS || state1 == State.FAILURE)
+                    {
+                        return State.SUCCESS;
+                    }
+                    if (state2 == State.FAILURE || state1 == State.SUCCESS)
+                    {
+                        return State.FAILURE;
+                    }
+                    return State.RUNNING;
+                    break;
+                case paralleleEnum.BOTH:
+                    if (state1 == State.SUCCESS && state2 == State.SUCCESS)
+                    {
+                        return State.SUCCESS;
+                    }
+                    if (state1 == State.FAILURE || state2 == State.FAILURE)
+                    {
+                        return State.FAILURE;
+                    }
+                    return State.RUNNING;
+                    break;
+                default:
+                    Debug.LogError("Cheh");
+                    break;
+            }
+            return State.RUNNING;
+        }
+    }
 
 
 
