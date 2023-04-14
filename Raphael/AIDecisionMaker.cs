@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
+
 namespace AI_BehaviorTree_AIImplementation
 {
     public class AIDecisionMaker
@@ -23,26 +24,47 @@ namespace AI_BehaviorTree_AIImplementation
         public void SetAIId(int parAIId) {
             AIId = parAIId;
 
-
             behavior = new BehaviorTree();
             behavior.IDPlayer = AIId;
 
+            paralleleEnum paraEnum = paralleleEnum.BOTH;
+            Parallele para = new Parallele(paraEnum);
+            para.addAction(new ActionSetLowHealthTarget());
+            para.addAction(new ActionFIRE());
 
-            behavior.root.defaultAction = new ActionMoveToWhala();
+            behavior.root.defaultAction = para;
 
-            Sequencer Sequence1 = new Sequencer();
-            behavior.root.AddSequencer(Sequence1);
+            Sequencer esquiveSequence = new Sequencer();
 
-            Sequence1.addNoeud(new ActionSetLowHealthTarget());
-            Sequence1.addNoeud(new ActionMoveToTarget());
-            Sequence1.addNoeud(new ActionFIRE());
+           // Sequencer Sequence1 = new Sequencer();
+
+            behavior.root.AddSequencer(esquiveSequence);
+           // behavior.root.AddSequencer(Sequence1);
+
+            
+
+            esquiveSequence.addNoeud(new ActionTargetCloser());
+            esquiveSequence.addNoeud(new ActionMoveToTarget());
+          
+           // Sequence1.addNoeud(new ActionDash());
+            paralleleEnum paraEnum3 = paralleleEnum.BOTH;
+            Parallele para3 = new Parallele(paraEnum3);
+            esquiveSequence.addNoeud(para3);
+            para3.addAction(new ActionDash());
+
+            para3.addAction(new ActionFIRE());
+
+            
+
+            
+            //Sequence1.addNoeud(new ActionFIRE());
 
 
 
         }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
-        public string GetName() { return "Pas Lui"; }
+        public string GetName() { return "CIRNO THE CHOOSEN ONE"; }
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) {
             AIGameWorldUtils = parGameWorldUtils;
@@ -59,55 +81,8 @@ namespace AI_BehaviorTree_AIImplementation
         private float BestDistanceToFire = 10.0f;
         public List<AIAction> ComputeAIDecision()
         {
-            /*List<PlayerInformations> playerInfos = AIGameWorldUtils.GetPlayerInfosList();
-            PlayerInformations myPlayerInfo = GetPlayerInfos(AIId, playerInfos);
-            List<Action> myAction =  behavior.GetActions(myPlayerInfo);
-            /*List<AIAction> actionList = new List<AIAction>();
-
-            List<PlayerInformations> playerInfos = AIGameWorldUtils.GetPlayerInfosList();
-            PlayerInformations target = null;
-            foreach (PlayerInformations playerInfo in playerInfos)
-            {
-                if (!playerInfo.IsActive)
-                    continue;
-
-                if (playerInfo.PlayerId == AIId)
-                    continue;
-
-                target = playerInfo;
-                break;
-            }
-
-            if (target == null)
-                return actionList;
-
-            PlayerInformations myPlayerInfo = GetPlayerInfos(AIId, playerInfos);
-            if (myPlayerInfo == null)
-                return actionList;
-
-            if (Vector3.Distance(myPlayerInfo.Transform.Position, target.Transform.Position) < BestDistanceToFire)
-            {
-                AIActionStopMovement actionStop = new AIActionStopMovement();
-                actionList.Add(actionStop);
-            }
-            else
-            {
-                AIActionMoveToDestination actionMove = new AIActionMoveToDestination();
-                actionMove.Position = target.Transform.Position;
-                actionList.Add(actionMove);
-            }
-
-
-            AIActionLookAtPosition actionLookAt = new AIActionLookAtPosition();
-            actionLookAt.Position = target.Transform.Position;
-            actionList.Add(actionLookAt);
-            actionList.Add(new AIActionFire());*/
-
             List<AIAction> actionList = new List<AIAction>();
             listBTAction = new List<Noeud>();
-
-
-
 
             behavior.root.Launch(GetPlayerInfos(behavior.IDPlayer, AIGameWorldUtils.GetPlayerInfosList()), behavior.myBlackBoard, AIGameWorldUtils.GetPlayerInfosList(), listBTAction);
             behavior.actionToRealize = listBTAction;
@@ -158,9 +133,9 @@ namespace AI_BehaviorTree_AIImplementation
             List<AIAction> listAIActions = new List<AIAction>();
             foreach (var action in actionToRealize)
             {
-                if (action.GetAIAction(theBlackBoard, playerInfos) != null)
+                if (action.GetAIAction(myPlayerInfo,theBlackBoard, playerInfos) != null)
                 {
-                    listAIActions.Add(action.GetAIAction(theBlackBoard, playerInfos));
+                    listAIActions.Add(action.GetAIAction(myPlayerInfo,theBlackBoard, playerInfos));
                 }
             }
             return listAIActions;
@@ -172,6 +147,7 @@ namespace AI_BehaviorTree_AIImplementation
         public int potentialTargetID = -1;
         public Vector3 distance = new Vector3();
         public GameWorldUtils worldState;
+        public bool dashposition = true;
     }
 
     public class Noeud
@@ -190,7 +166,7 @@ namespace AI_BehaviorTree_AIImplementation
             //Debug.LogError("Ton cast pu ");
             return this.state;
         }
-        public virtual AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public virtual AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
                 return myAIAction;
 
@@ -417,6 +393,7 @@ namespace AI_BehaviorTree_AIImplementation
     public class ActionDash : Noeud
     {
         public new AIActionDash myAIAction = new AIActionDash();
+        
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
             if (myPlayerInfo.IsDashAvailable)
@@ -430,9 +407,41 @@ namespace AI_BehaviorTree_AIImplementation
 
             return state;
         }
-        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            myAIAction.Direction = new Vector3(90f, 0, 90f);
+            float zone = 10;
+            float distanceWithPlayer = float.MaxValue;
+            foreach (var balle in theBlackBoard.worldState.GetProjectileInfosList())
+            {
+                if (Vector3.Distance(balle.Transform.Position, myPlayerInfo.Transform.Position) <= zone)
+                {
+                    if (Vector3.Distance(balle.Transform.Position, myPlayerInfo.Transform.Position) < distanceWithPlayer)
+                    {
+                        Vector3 direction = balle.Transform.Position - myPlayerInfo.Transform.Position;
+                        float norme = direction.magnitude;
+
+                        Vector3 directionNormaliser = direction / norme;
+
+                        Vector3 perpendiculaire = new Vector3(directionNormaliser.z, 0, -directionNormaliser.x).normalized;
+
+                        float crossProduct = Vector3.Cross(directionNormaliser, perpendiculaire).y;
+
+
+                        float avoidanceDirection = 0;
+                        if (crossProduct > 0)
+                        {
+                            avoidanceDirection = 1;
+                        }
+                        else if (crossProduct < 0)
+                        {
+                            avoidanceDirection = -1;
+                        }
+
+
+                        myAIAction.Direction = perpendiculaire * avoidanceDirection;
+                    }
+                }
+            }
             return myAIAction;
         }
     }
@@ -478,7 +487,7 @@ namespace AI_BehaviorTree_AIImplementation
 
             return State.SUCCESS;
         }
-        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             foreach (PlayerInformations playerInfo in playerInfos)
             {
@@ -492,7 +501,6 @@ namespace AI_BehaviorTree_AIImplementation
             return myAIAction;
         }
     }
-
 
     public class ActionSetLowHealthTarget : Noeud
     {
@@ -533,7 +541,7 @@ namespace AI_BehaviorTree_AIImplementation
             return State.SUCCESS;
         }
 
-        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return myAIAction;
         }
@@ -561,7 +569,7 @@ namespace AI_BehaviorTree_AIImplementation
                 return State.FAILURE;
             }
         }
-        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             myAIAction.Position = target.Transform.Position;
             return myAIAction;
@@ -569,26 +577,7 @@ namespace AI_BehaviorTree_AIImplementation
     }
 
 
-    public class ActionMoveToWhala : Noeud
-    {
-        public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
-        PlayerInformations target = null;
-        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
-        {
-
-            if(Vector3.Distance(myPlayerInfo.Transform.Position , myAIAction.Position)< 1.5)
-            {
-
-                return State.RUNNING;
-            }
-            return State.SUCCESS;
-        }
-        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
-        {
-            myAIAction.Position = new Vector3(0,0,0) ;
-            return myAIAction;
-        }
-    }
+   
 
     public class ActionFIRE : Noeud
     {
@@ -597,12 +586,101 @@ namespace AI_BehaviorTree_AIImplementation
         {
           return State.SUCCESS;
         }
-        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return myAIAction;
         }
     }
 
+    public class ActionTargetCloser : Noeud
+    {
+        public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
+        PlayerInformations potentialTarget;
+        //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            potentialTarget = null;
+
+            if (potentialTarget == null || !potentialTarget.IsActive)
+            {
+                foreach (PlayerInformations playerInfo in playerInfos)
+                {
+                    if (!playerInfo.IsActive)
+                        continue;
+
+                    else if (playerInfo.PlayerId == myPlayerInfo.PlayerId)
+                        continue;
+                    else
+                    {
+                        if (potentialTarget == null)
+                        {
+                            potentialTarget = playerInfo;
+                        }
+                        else if ( Vector3.Distance(playerInfo.Transform.Position,myPlayerInfo.Transform.Position)< Vector3.Distance(potentialTarget.Transform.Position, myPlayerInfo.Transform.Position))
+                        {
+                            if(playerInfo.CurrentHealth < potentialTarget.CurrentHealth)
+                            {
+                                potentialTarget = playerInfo;
+                            }
+                        }
+                    }
+
+                }
+                if (myPlayerInfo.CurrentHealth < myPlayerInfo.MaxHealth / 2)
+                {
+                    foreach (BonusInformations bonus in theBlackBoard.worldState.GetBonusInfosList())
+                    {
+                        if (Vector3.Distance(bonus.Position, myPlayerInfo.Transform.Position) < Vector3.Distance(potentialTarget.Transform.Position, myPlayerInfo.Transform.Position))
+                        {
+                            potentialTarget.Transform.Position = bonus.Position;
+                        }
+                    }
+                }
+
+                theBlackBoard.playerTarget = potentialTarget.PlayerId;
+            }
+            myAIAction.Position = potentialTarget.Transform.Position;
+            theBlackBoard.playerTarget = potentialTarget.PlayerId;
+            return State.SUCCESS;
+        }
+
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
+        }
+    }
+    public class ActionRandomDash : Noeud
+    {
+        public new AIActionDash myAIAction = new AIActionDash();
+        
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            if (myPlayerInfo.IsDashAvailable)
+            {
+                state = State.SUCCESS;
+            }
+            else
+            {
+                state = State.FAILURE;
+            }
+
+            return state;
+        }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+
+            System.Random rand = new System.Random();
+            double nombreAleatoire = rand.NextDouble() * 2 - 1;
+
+            System.Random rand2 = new System.Random();
+            double nombreAleatoire2 = rand.NextDouble() * 2 - 1;
+
+            System.Random rand3 = new System.Random();
+            double nombreAleatoire3 = rand.NextDouble() * 2 - 1;
 
 
+            myAIAction.Direction = new Vector3((float)nombreAleatoire, (float)nombreAleatoire2, (float)nombreAleatoire3);
+            return myAIAction;
+        }
+    }
 }
