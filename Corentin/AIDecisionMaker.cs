@@ -31,13 +31,26 @@ namespace AI_BehaviorTree_AIImplementation
 
             behavior.root.defaultAction = new ActionMoveToWhala();
 
-            Sequencer Sequence1 = new Sequencer();
-            behavior.root.AddSequencer(Sequence1);
-
-            Sequence1.addNoeud(new ActionSetLowHealthTarget());
-            Sequence1.addNoeud(new ActionMoveToTarget());
-            Sequence1.addNoeud(new ActionFIRE());
+            Sequencer Aggro = new Sequencer();
             
+
+            Aggro.addNoeud(new ActionSetLowHealthTarget());
+            Aggro.addNoeud(new ActionMoveToTarget());
+            Aggro.addNoeud(new ActionFIRE());
+
+            Sequencer Buff = new Sequencer();
+            
+
+            Buff.addNoeud(new ActionGoToHealthBuff());
+
+            ForcedSuccess forceS = new ForcedSuccess();
+            forceS.AddAction(new ForcedSuccess());
+
+            Buff.addNoeud(forceS);
+
+
+            behavior.root.AddSequencer(Buff);
+            behavior.root.AddSequencer(Aggro);
 
         }
 
@@ -48,10 +61,6 @@ namespace AI_BehaviorTree_AIImplementation
         {
             AIGameWorldUtils = parGameWorldUtils;
             behavior.myBlackBoard.worldState = parGameWorldUtils;
-
-
-
-            //initialize your actions/parameters and such here
         }
 
         //Fin du bloc de fonction nécessaire (Attention ComputeAIDecision en fait aussi partit)
@@ -60,50 +69,7 @@ namespace AI_BehaviorTree_AIImplementation
         private float BestDistanceToFire = 10.0f;
         public List<AIAction> ComputeAIDecision()
         {
-            /*List<PlayerInformations> playerInfos = AIGameWorldUtils.GetPlayerInfosList();
-            PlayerInformations myPlayerInfo = GetPlayerInfos(AIId, playerInfos);
-            List<Action> myAction =  behavior.GetActions(myPlayerInfo);
-            /*List<AIAction> actionList = new List<AIAction>();
-
-            List<PlayerInformations> playerInfos = AIGameWorldUtils.GetPlayerInfosList();
-            PlayerInformations target = null;
-            foreach (PlayerInformations playerInfo in playerInfos)
-            {
-                if (!playerInfo.IsActive)
-                    continue;
-
-                if (playerInfo.PlayerId == AIId)
-                    continue;
-
-                target = playerInfo;
-                break;
-            }
-
-            if (target == null)
-                return actionList;
-
-            PlayerInformations myPlayerInfo = GetPlayerInfos(AIId, playerInfos);
-            if (myPlayerInfo == null)
-                return actionList;
-
-            if (Vector3.Distance(myPlayerInfo.Transform.Position, target.Transform.Position) < BestDistanceToFire)
-            {
-                AIActionStopMovement actionStop = new AIActionStopMovement();
-                actionList.Add(actionStop);
-            }
-            else
-            {
-                AIActionMoveToDestination actionMove = new AIActionMoveToDestination();
-                actionMove.Position = target.Transform.Position;
-                actionList.Add(actionMove);
-            }
-
-
-            AIActionLookAtPosition actionLookAt = new AIActionLookAtPosition();
-            actionLookAt.Position = target.Transform.Position;
-            actionList.Add(actionLookAt);
-            actionList.Add(new AIActionFire());*/
-
+            
             List<AIAction> actionList = new List<AIAction>();
             listBTAction = new List<Noeud>();
 
@@ -173,6 +139,7 @@ namespace AI_BehaviorTree_AIImplementation
         public int potentialTargetID = -1;
         public Vector3 distance = new Vector3();
         public GameWorldUtils worldState;
+        public Vector3 targetposition = new Vector3();
     }
 
     public class Noeud
@@ -309,11 +276,20 @@ namespace AI_BehaviorTree_AIImplementation
     public class ForcedSuccess : Noeud
     {
         List<Noeud> actions = new List<Noeud>();
+
+        public void AddAction(Noeud a)
+        {
+            actions.Add(a);
+        }
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
             for (int i = 0; i < actions.Count; i++)
             {
                 this.state = actions[i].Launch(myPlayerInfo, theBlackBoard, playerInfos, listAction);
+                if (state == State.SUCCESS)
+                {
+                    listAction.Add(actions[i]);
+                }
             }
             return State.SUCCESS;
         }
@@ -609,6 +585,77 @@ namespace AI_BehaviorTree_AIImplementation
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
             return State.SUCCESS;
+        }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
+        }
+    }
+
+    public class ActionGoToHealthBuff : Noeud
+    {
+        public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            if (myPlayerInfo.CurrentHealth > (myPlayerInfo.MaxHealth / 2)) return State.FAILURE;
+
+            BonusInformations target = null;
+            List<BonusInformations> bonusInfo = theBlackBoard.worldState.GetBonusInfosList();
+            List<BonusInformations> bonusHeal = new List<BonusInformations>();
+
+            foreach (BonusInformations bonus in bonusInfo)
+            {
+                if (bonus.Type == EBonusType.Health) bonusHeal.Add(bonus);
+            }
+
+            if (bonusHeal.Count == 0) return State.FAILURE;
+
+            if (target == null)
+            {
+                foreach (BonusInformations Heal in bonusHeal)
+                {
+
+                    if (target == null)
+                    {
+                        target = Heal;
+                    }
+                    else if (Vector3.Distance(myPlayerInfo.Transform.Position, target.Position) <
+                    Vector3.Distance(myPlayerInfo.Transform.Position, Heal.Position))
+                    {
+                        target = Heal;
+                    }
+
+                }
+
+            }
+
+            myAIAction.Position = target.Position;
+            return State.SUCCESS;
+
+        }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
+        }
+
+    }
+
+    public class ActionDashToTargetPos : Noeud
+    {
+        public new AIActionDash myAIAction = new AIActionDash();
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            if (myPlayerInfo.IsDashAvailable)
+            {
+                state = State.SUCCESS;
+                myAIAction.Direction = (myPlayerInfo.Transform.Position - theBlackBoard.targetposition).normalized;
+            }
+            else
+            {
+                state = State.FAILURE;
+            }
+            
+            return state;
         }
         public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
