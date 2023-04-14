@@ -17,39 +17,29 @@ namespace AI_BehaviorTree_AIImplementation
         private int AIId = -1;
         public GameWorldUtils AIGameWorldUtils = new GameWorldUtils();
         BehaviorTree behavior;
-        ActionDash Ad;
-        ActionSetTarget Ast;
-        ActionMoveToTarget Amtt;
-        ActionMoveToWhala Amtw;
-        ActionFIRE Af;
-
 
         // Ne pas utiliser cette fonction, elle n'est utile que pour le jeu qui vous Set votre Id, si vous voulez votre Id utilisez AIId
         public void SetAIId(int parAIId) { 
             AIId = parAIId;
 
             behavior = new BehaviorTree();
-            Ad = new ActionDash();
-            Ast = new ActionSetTarget();
-            Af = new ActionFIRE();
-            Amtt = new ActionMoveToTarget();
-            Amtw = new ActionMoveToWhala();
             behavior.IDPlayer = AIId;
             
 
-            behavior.root.defaultAction = Ad;
+            behavior.root.defaultAction = new ActionMoveToWhala();
 
             Sequencer Sequence1 = new Sequencer();
             behavior.root.AddSequencer(Sequence1);
 
-            Sequence1.addAction(Ast);
-            Sequence1.addAction(Amtt);
+            Sequence1.addAction(new ActionSetLowHealthTarget());
+            Sequence1.addAction(new ActionMoveToTarget());
+            Sequence1.addAction(new ActionFIRE());
 
 
         }
 
         // Vous pouvez modifier le contenu de cette fonction pour modifier votre nom en jeu
-        public string GetName() { return "CIRNO the STRONGEST"; }
+        public string GetName() { return "Pas Lui"; }
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
@@ -496,7 +486,6 @@ namespace AI_BehaviorTree_AIImplementation
                 }
             }
 
-            Debug.LogError("target id" + theBlackBoard.playerTarget);
             return State.SUCCESS;
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -517,11 +506,12 @@ namespace AI_BehaviorTree_AIImplementation
     public class ActionSetLowHealthTarget : Action
     {
         public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
-        PlayerInformations potentialTarget = null;
+        PlayerInformations potentialTarget;
         //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-           
+            potentialTarget = null;
+
             if (potentialTarget == null || !potentialTarget.IsActive)
             {
                 foreach (PlayerInformations playerInfo in playerInfos)
@@ -540,14 +530,21 @@ namespace AI_BehaviorTree_AIImplementation
                         else if (playerInfo.CurrentHealth < potentialTarget.CurrentHealth)
                         {
                             potentialTarget = playerInfo;
-                            theBlackBoard.playerTarget = playerInfo.PlayerId;
+                            
                         }
                     }
+                    
                 }
+                theBlackBoard.playerTarget = potentialTarget.PlayerId;
             }
             myAIAction.Position = potentialTarget.Transform.Position;
             theBlackBoard.playerTarget = potentialTarget.PlayerId;
             return State.SUCCESS;
+        }
+
+        public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
         }
     }
     public class ActionMoveToTarget : Action
@@ -556,7 +553,6 @@ namespace AI_BehaviorTree_AIImplementation
         PlayerInformations target = null;
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
-            Debug.LogError("target id" + theBlackBoard.playerTarget);
             foreach (PlayerInformations playerInfo in playerInfos)
             {
                 if (playerInfo.PlayerId == theBlackBoard.playerTarget)
