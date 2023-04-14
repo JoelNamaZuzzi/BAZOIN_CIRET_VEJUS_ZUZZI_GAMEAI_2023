@@ -49,13 +49,9 @@ namespace AI_BehaviorTree_AIImplementation
             behavior.root.AddSequencer(Sequence1);
 
 
-           Sequence1.addNoeud(para);
-            //Sequence1.addNoeud(Amtw);
-            para.addAction(Amtw);
-            para.addAction(Af);
+            Sequence1.addAction(Ast);
+            Sequence1.addAction(Amtt);
 
-
-            
 
 
         }
@@ -65,6 +61,7 @@ namespace AI_BehaviorTree_AIImplementation
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
+            behavior.myBlackBoard.worldState = parGameWorldUtils;
             
             
 
@@ -189,6 +186,7 @@ namespace AI_BehaviorTree_AIImplementation
         public int playerTarget = -1;
         public int potentialTargetID = -1;
         public Vector3 distance = new Vector3();
+        public GameWorldUtils worldState;
     }
 
     public class Noeud 
@@ -204,7 +202,7 @@ namespace AI_BehaviorTree_AIImplementation
 
         public virtual State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
-            Debug.LogError("Ton cast pu ");
+            //Debug.LogError("Ton cast pu ");
             return this.state;
         }
         public virtual AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -421,7 +419,7 @@ namespace AI_BehaviorTree_AIImplementation
                     
                     break;
                 default:
-                    Debug.LogError("Cheh");
+                    //Debug.LogError("Cheh");
                     break;
             }
             return State.RUNNING;
@@ -456,10 +454,11 @@ namespace AI_BehaviorTree_AIImplementation
     public class ActionSetTarget : Noeud
     {
         public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
-        PlayerInformations potentialTarget = null;
+        PlayerInformations potentialTarget;
         //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
+            potentialTarget = null;
             foreach (PlayerInformations playerInfo in playerInfos)
             {
                 if (playerInfo.PlayerId == theBlackBoard.playerTarget)
@@ -486,11 +485,13 @@ namespace AI_BehaviorTree_AIImplementation
                             Vector3.Distance(myPlayerInfo.Transform.Position, potentialTarget.Transform.Position))
                         {
                             potentialTarget = playerInfo;
-                            theBlackBoard.potentialTargetID = playerInfo.PlayerId;
                         }
                     }
+                    theBlackBoard.playerTarget = playerInfo.PlayerId;
                 }
             }
+
+            //Debug.LogError("target id" + theBlackBoard.playerTarget);
             return State.SUCCESS;
         }
         public override AIAction GetAIAction(BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -507,12 +508,52 @@ namespace AI_BehaviorTree_AIImplementation
             return myAIAction;
         }
     }
+
+
+    public class ActionSetLowHealthTarget : Action
+    {
+        public new AIActionLookAtPosition myAIAction = new AIActionLookAtPosition();
+        PlayerInformations potentialTarget = null;
+        //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+           
+            if (potentialTarget == null || !potentialTarget.IsActive)
+            {
+                foreach (PlayerInformations playerInfo in playerInfos)
+                {
+                    if (!playerInfo.IsActive)
+                        continue;
+
+                    else if (playerInfo.PlayerId == myPlayerInfo.PlayerId)
+                        continue;
+                    else
+                    {
+                        if (potentialTarget == null)
+                        {
+                            potentialTarget = playerInfo;
+                        }
+                        else if (playerInfo.CurrentHealth < potentialTarget.CurrentHealth)
+                        {
+                            potentialTarget = playerInfo;
+                            theBlackBoard.playerTarget = playerInfo.PlayerId;
+                        }
+                    }
+                }
+            }
+            myAIAction.Position = potentialTarget.Transform.Position;
+            theBlackBoard.playerTarget = potentialTarget.PlayerId;
+            return State.SUCCESS;
+        }
+    }
     public class ActionMoveToTarget : Noeud
+
     {
         public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
         PlayerInformations target = null;
         public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
         {
+            //Debug.LogError("target id" + theBlackBoard.playerTarget);
             foreach (PlayerInformations playerInfo in playerInfos)
             {
                 if (playerInfo.PlayerId == theBlackBoard.playerTarget)
