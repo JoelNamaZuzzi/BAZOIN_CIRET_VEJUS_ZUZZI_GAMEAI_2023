@@ -53,6 +53,7 @@ namespace AI_BehaviorTree_AIImplementation
         //Same as Initialize
         public void SetAIGameWorldUtils(GameWorldUtils parGameWorldUtils) { 
             AIGameWorldUtils = parGameWorldUtils;
+            behavior.myBlackBoard.worldState = parGameWorldUtils;
             
             
 
@@ -173,6 +174,7 @@ namespace AI_BehaviorTree_AIImplementation
         public int playerTarget = -1;
         public int potentialTargetID = -1;
         public Vector3 distance = new Vector3();
+        public GameWorldUtils worldState;
     }
 
     public class Noeud 
