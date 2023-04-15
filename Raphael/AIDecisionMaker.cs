@@ -23,47 +23,36 @@ namespace AI_BehaviorTree_AIImplementation
         // Ne pas utiliser cette fonction, elle n'est utile que pour le jeu qui vous Set votre Id, si vous voulez votre Id utilisez AIId
         public void SetAIId(int parAIId)
         {
-            AIId = parAIId;
-
-            behavior = new BehaviorTree();
-            behavior.IDPlayer = AIId;
 
 
+               AIId = parAIId;
 
-            behavior.root.defaultAction = new ActionMoveToCenter();
+               behavior = new BehaviorTree();
+               behavior.IDPlayer = AIId;
+               behavior.root.defaultAction = new ActionMoveToCenter();
+
+
 
             Sequencer basicSeq = new Sequencer();
-            Sequencer Sequence1 = new Sequencer();
-            // behavior.root.AddSequencer(Sequence1);
-           // Sequence1.addNoeud(new ActionTargetBuff());
-           // Sequence1.addNoeud(new ActionSetLowHealthTarget());
-          //  Sequence1.addNoeud(new ActionFIRE());
-
-          //  behavior.root.AddSequencer(Sequence1);
-            // esquiveSequence.addNoeud(new ActionDash());
+            //Séqeunce qui target l'ennemi avec le moins de buff pour le tuer
             basicSeq.addNoeud(new ActionSetLowHealthTarget());
             basicSeq.addNoeud(new ActionMoveToTarget());
             basicSeq.addNoeud(new ActionFIRE());
-            paralleleEnum paraEnum3 = paralleleEnum.BOTH;
-            Parallele para3 = new Parallele(paraEnum3);
 
-           /* Sequencer checkBonus = new Sequencer();
-            checkBonus.addNoeud(new ActionSetLowHealthTarget());
-            checkBonus.addNoeud(new ActionTargetBuff());
-            checkBonus.addNoeud(new ActionMoveToTarget()); */
+            //Sequence qui pousse l'ia a chercher du heal quand elle a moins de 50% de vie 
+            Sequencer INeedHealing = new Sequencer();
+            INeedHealing.addNoeud(new ActionMoveToHeal());
+            INeedHealing.addNoeud(new ActionFIRE());
 
-            Sequencer sequenceEsquive = new Sequencer();
-            sequenceEsquive.addNoeud(para3);
-            para3.addAction(new ActionFIRE());
-            para3.addAction(new ActionDashdroite());
+            Sequencer Sequence1 = new Sequencer();
+               
+            Sequencer INeedSHOOOT = new Sequencer();
+            INeedSHOOOT.addNoeud(new ActionMoveToBuffTirRate());
+            INeedSHOOOT.addNoeud(new ActionFIRE());
 
-          //  behavior.root.AddSequencer(checkBonus);
-            behavior.root.AddSequencer(sequenceEsquive);
-
+            behavior.root.AddSequencer(INeedHealing);
+            behavior.root.AddSequencer(INeedSHOOOT);
             behavior.root.AddSequencer(basicSeq);
-
-            //  basicSeq.addNoeud(new ActionDash());
-
 
         }
 
@@ -152,7 +141,7 @@ namespace AI_BehaviorTree_AIImplementation
         public int potentialTargetID = -1;
         public Vector3 distance = new Vector3();
         public GameWorldUtils worldState;
-        public bool dashposition = true;
+        public Vector3 dashposition = new Vector3();
         public Vector3 bonusPos = Vector3.zero;
     }
 
@@ -428,7 +417,7 @@ namespace AI_BehaviorTree_AIImplementation
 
                 state = State.FAILURE;
             }
-            Debug.LogError(state);
+            
             return state;
         }
         public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
@@ -448,7 +437,7 @@ namespace AI_BehaviorTree_AIImplementation
 
                         Vector3 perpendiculaire = new Vector3(directionNormaliser.x, 0, -directionNormaliser.z).normalized;
 
-                        myAIAction.Direction = myPlayerInfo.Transform.Rotation * perpendiculaire;
+                        myAIAction.Direction = perpendiculaire;
                         Debug.LogError(perpendiculaire);
                     }
                 }
@@ -782,10 +771,7 @@ namespace AI_BehaviorTree_AIImplementation
         {
             if (myPlayerInfo.IsDashAvailable)
             {
-
                 state = State.SUCCESS;
-
-
             }
             else
             {
@@ -831,4 +817,125 @@ namespace AI_BehaviorTree_AIImplementation
             return myAIAction;
         }
     }
+
+    public class ActionMoveToHeal : Noeud
+
+    {
+        public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            if (myPlayerInfo.CurrentHealth > (myPlayerInfo.MaxHealth / 2)) return State.FAILURE;
+
+            BonusInformations target = null;
+            List<BonusInformations> bonusInfo = theBlackBoard.worldState.GetBonusInfosList();
+            List<BonusInformations> bonusHeal = new List<BonusInformations>();
+
+            foreach (BonusInformations bonus in bonusInfo)
+            {
+                if (bonus.Type == EBonusType.Health) bonusHeal.Add(bonus);
+            }
+
+            if (bonusHeal.Count == 0) return State.FAILURE;
+
+            if (target == null)
+            {
+                foreach (BonusInformations Heal in bonusHeal)
+                {
+
+                    if (target == null)
+                    {
+                        target = Heal;
+                    }
+                    else if (Vector3.Distance(myPlayerInfo.Transform.Position, target.Position) <
+                    Vector3.Distance(myPlayerInfo.Transform.Position, Heal.Position))
+                    {
+                        target = Heal;
+                    }
+
+                }
+
+            }
+
+            myAIAction.Position = target.Position;
+            return State.SUCCESS;
+
+        }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
+        }
+    }
+
+
+    public class ActionMoveToBuffTirRate : Noeud
+
+    {
+        public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            if (myPlayerInfo.CurrentHealth > (myPlayerInfo.MaxHealth / 2)) return State.FAILURE;
+
+            BonusInformations target = null;
+            List<BonusInformations> bonusInfo = theBlackBoard.worldState.GetBonusInfosList();
+            List<BonusInformations> bonusHeal = new List<BonusInformations>();
+
+            foreach (BonusInformations bonus in bonusInfo)
+            {
+                if (bonus.Type == EBonusType.CooldownReduction) bonusHeal.Add(bonus);
+            }
+
+            if (bonusHeal.Count == 0) return State.FAILURE;
+
+            if (target == null)
+            {
+                foreach (BonusInformations tirrate in bonusHeal)
+                {
+
+                    if (target == null)
+                    {
+                        target = tirrate;
+                    }
+                    else if (Vector3.Distance(myPlayerInfo.Transform.Position, target.Position) <
+                    Vector3.Distance(myPlayerInfo.Transform.Position, tirrate.Position))
+                    {
+                        target = tirrate;
+                    }
+
+                }
+
+            }
+
+            myAIAction.Position = target.Position;
+            return State.SUCCESS;
+
+        }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
+        }
+    }
+
+    public class ActionDashToTarget : Noeud
+    {
+        public new AIActionDash myAIAction = new AIActionDash();
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            if (myPlayerInfo.IsDashAvailable)
+            {
+                state = State.SUCCESS;
+                myAIAction.Direction = (myPlayerInfo.Transform.Position - theBlackBoard.dashposition).normalized;
+            }
+            else
+            {
+                state = State.FAILURE;
+            }
+
+            return state;
+        }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
+        }
+    }
+
 }
