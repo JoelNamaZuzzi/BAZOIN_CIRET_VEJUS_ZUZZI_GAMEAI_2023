@@ -38,17 +38,24 @@ namespace AI_BehaviorTree_AIImplementation
             Aggro.addNoeud(new ActionMoveToTarget());
             Aggro.addNoeud(new ActionFIRE());
 
-            Sequencer Buff = new Sequencer();
+            Sequencer Heal = new Sequencer();
             
 
-            Buff.addNoeud(new ActionGoToHealthBuff());
+            Heal.addNoeud(new ActionGoToHealthBuff());
 
             ForcedSuccess forceS = new ForcedSuccess();
             forceS.AddAction(new ForcedSuccess());
 
-            Buff.addNoeud(forceS);
+            Heal.addNoeud(forceS);
+            Heal.addNoeud(new ActionSetLowHealthTarget());
+            Heal.addNoeud(new ActionFIRE());
 
+            Sequencer Buff = new Sequencer();
+            Buff.addNoeud(new ActionMoveToBonus());
+            Buff.addNoeud(new ActionSetLowHealthTarget());
+            Buff.addNoeud(new ActionFIRE());
 
+            behavior.root.AddSequencer(Heal);
             behavior.root.AddSequencer(Buff);
             behavior.root.AddSequencer(Aggro);
 
@@ -619,8 +626,8 @@ namespace AI_BehaviorTree_AIImplementation
                     {
                         target = Heal;
                     }
-                    else if (Vector3.Distance(myPlayerInfo.Transform.Position, target.Position) <
-                    Vector3.Distance(myPlayerInfo.Transform.Position, Heal.Position))
+                    else if (Vector3.Distance(myPlayerInfo.Transform.Position, Heal.Position) <
+                    Vector3.Distance(myPlayerInfo.Transform.Position, target.Position))
                     {
                         target = Heal;
                     }
@@ -657,6 +664,60 @@ namespace AI_BehaviorTree_AIImplementation
             
             return state;
         }
+        public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
+        {
+            return myAIAction;
+        }
+    }
+
+    public class ActionMoveToBonus : Noeud
+    {
+        public new AIActionMoveToDestination myAIAction = new AIActionMoveToDestination();
+        BonusInformations bonusInfo;
+        //Ici on cherche tjr une nouvelle target, mais modifiable pour ne pas changer de target quand on en a une, ou en changer seulement si on a une distance specifique, etc...
+        public override State Launch(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos, List<Noeud> listAction)
+        {
+            bonusInfo = null;
+            theBlackBoard.targetposition = Vector3.zero;
+            if (bonusInfo == null)
+            {
+                foreach (BonusInformations bonusInformations in theBlackBoard.worldState.GetBonusInfosList())
+                {
+                    if (bonusInformations.Position == theBlackBoard.targetposition)
+                        bonusInfo = bonusInformations;
+                    else if (theBlackBoard.targetposition == Vector3.zero)
+                    {
+                        bonusInfo = bonusInformations;
+                        theBlackBoard.targetposition = bonusInfo.Position;
+                    }
+                    else
+                    {
+                        if (Vector3.Distance(bonusInformations.Position, myPlayerInfo.Transform.Position) < Vector3.Distance(theBlackBoard.targetposition, myPlayerInfo.Transform.Position))
+                        {
+
+                            bonusInfo = bonusInformations;
+
+                        }
+                    }
+
+                }
+                if (bonusInfo != null)
+                {
+                    theBlackBoard.targetposition = bonusInfo.Position;
+                }
+            }
+            if (bonusInfo == null)
+            {
+                return State.FAILURE;
+            }
+            else
+            {
+                myAIAction.Position = bonusInfo.Position;
+                theBlackBoard.targetposition = bonusInfo.Position;
+                return State.SUCCESS;
+            }
+        }
+
         public override AIAction GetAIAction(PlayerInformations myPlayerInfo, BlackBoard theBlackBoard, List<PlayerInformations> playerInfos)
         {
             return myAIAction;
